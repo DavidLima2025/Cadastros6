@@ -199,12 +199,12 @@
                 width: 100%;
             }
             
-            .catalogo-section h3 {
+            .catalogo-section-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
             
-            .catalogo-section h3 button {
+            .catalogo-section-header button {
                 margin-top: 0.5rem;
                 width: 100%;
             }
@@ -228,20 +228,56 @@
         }
         
         .catalogo-section {
-            margin-bottom: 2rem;
+            margin-bottom: 1rem; /* Reduzido */
             border-left: 5px solid var(--cor-secundaria);
             padding-left: 1rem;
         }
         
-        .catalogo-section h3 {
+        .catalogo-section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            position: relative;
         }
         
-        .catalogo-section h3 button {
+        .catalogo-section-header h3 {
+            margin: 0;
+            flex-grow: 1;
+        }
+        
+        .catalogo-section-header::after {
+            content: '\25BC'; /* Seta para baixo */
+            font-size: 0.8rem;
+            margin-left: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .catalogo-section.expanded .catalogo-section-header::after {
+            transform: rotate(180deg); /* Seta para cima */
+        }
+        
+        .catalogo-section-header button {
             font-size: 0.8rem;
             padding: 0.5rem 1rem;
+            margin-left: 1rem;
+            /* Evitar que o clique no botão expanda/recolha */
+            pointer-events: auto;
+            z-index: 1;
+        }
+        
+        .catalogo-section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            padding-top: 0;
+        }
+        
+        .catalogo-section.expanded .catalogo-section-content {
+            max-height: 10000px; /* Valor alto para permitir expansão */
+            padding-top: 1rem;
+            transition: max-height 0.5s ease-in;
         }
         
         .abordado-card {
@@ -491,7 +527,7 @@
                 background: #fff;
             }
             
-            header, nav, button, .abordado-actions {
+            header, nav, button, .abordado-actions, .catalogo-section-header button, .catalogo-section-header::after {
                 display: none !important;
             }
             
@@ -518,6 +554,12 @@
             
             .foto-container img {
                 max-height: 90mm;
+            }
+            
+            .catalogo-section-content {
+                max-height: none !important; /* Mostrar conteúdo no PDF */
+                overflow: visible !important;
+                padding-top: 1rem !important;
             }
         }
         
@@ -1192,7 +1234,7 @@
             });
         }
         
-        // Renderizar catálogo
+        // Renderizar catálogo (com accordion)
         function renderizarCatalogo() {
             // Agrupar abordados por tipo
             const abordadosPorTipo = {};
@@ -1219,15 +1261,19 @@
                 const tipoFormatado = formatarTipoEnvolvido(tipo);
                 
                 const section = document.createElement("div");
-                section.className = "catalogo-section";
-                section.innerHTML = `
-                    <h3>
-                        ${tipoFormatado} (${abordadosDoTipo.length})
-                        <button class="btn-gerar-pdf-tipo secundario" data-tipo="${tipo}">Gerar PDF (ABNT)</button>
-                    </h3>
+                section.className = "catalogo-section"; // Inicia recolhido
+                
+                const header = document.createElement("div");
+                header.className = "catalogo-section-header";
+                header.innerHTML = `
+                    <h3>${tipoFormatado} (${abordadosDoTipo.length})</h3>
+                    <button class="btn-gerar-pdf-tipo secundario" data-tipo="${tipo}">Gerar PDF (ABNT)</button>
                 `;
                 
-                // Adicionar abordados deste tipo
+                const content = document.createElement("div");
+                content.className = "catalogo-section-content";
+                
+                // Adicionar abordados deste tipo ao conteúdo
                 abordadosDoTipo.forEach(abordado => {
                     const card = document.createElement("div");
                     card.className = "abordado-card";
@@ -1272,11 +1318,21 @@
                             <button class="btn-excluir perigo" data-id="${abordado.id}">Excluir</button>
                         </div>
                     `;
-                    
-                    section.appendChild(card);
+                    content.appendChild(card);
                 });
                 
+                section.appendChild(header);
+                section.appendChild(content);
                 catalogoContainer.appendChild(section);
+                
+                // Adicionar evento de clique ao header para expandir/recolher
+                header.addEventListener("click", (e) => {
+                    // Não expandir/recolher se o clique foi no botão PDF
+                    if (e.target.classList.contains("btn-gerar-pdf-tipo")) {
+                        return;
+                    }
+                    section.classList.toggle("expanded");
+                });
             });
             
             // Adicionar event listeners para botões de PDF por tipo
