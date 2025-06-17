@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro de Abordados</title>
+    <style>
+        :root {
+            --cor-primaria: #000000; /* Preto */
+            --cor-secundaria: #D2B48C; /* Caqui */
+            --cor-texto: #333333;
+            --cor-fundo: #f5f5f5;
+            --cor-card: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        header {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 1rem 0;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-primaria);
+        }
+        
+        main {
+            padding: 2rem 0;
+        }
+        
+        .tabs {
+            margin-bottom: 2rem;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid var(--cor-secundaria);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--cor-texto);
+            transition: all 0.3s;
+        }
+        
+        .tab-button.active {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-primaria);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-container {
+            background-color: var(--cor-card);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .form-col {
+            flex: 1;
+            padding: 0 10px;
+            min-width: 250px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        button {
+            background-color: var(--cor-primaria);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-primaria);
+        }
+        
+        .btn-secondary {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-primaria);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #b89c76; /* Caqui mais escuro */
+        }
+        
+        .catalogo {
+            margin-top: 2rem;
+        }
+        
+        .tipo-section {
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--cor-secundaria);
+            padding-left: 1rem;
+        }
+        
+        .tipo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background-color: var(--cor-card);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-img {
+            height: 200px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card-text {
+            margin-bottom: 1rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background-color: var(--cor-card);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 30px auto;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .modal-photo {
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-col {
+                flex: 100%;
+            }
+            
+            .modal-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Sistema de Registro de Abordados</div>
+                <ul class="nav-links">
+                    <li><a href="#" class="active" data-tab="cadastro">Cadastro</a></li>
+                    <li><a href="#" data-tab="catalogo">Catálogo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="cadastro">Cadastro</button>
+                    <button class="tab-button" data-tab="catalogo">Catálogo</button>
+                </div>
+                
+                <div class="tab-content active" id="cadastro">
+                    <h2>Cadastro de Abordado</h2>
+                    <div class="form-container">
+                        <form id="abordadoForm">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="local_fato" class="required">LOCAL DO FATO</label>
+                                        <input type="text" id="local_fato" name="local_fato" value="AFONSO PENA 412" required>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="tipo_envolvido" class="required">TIPO DE ENVOLVIDO</label>
+                                        <select id="tipo_envolvido" name="tipo_envolvido" required>
+                                            <option value="">Selecione...</option>
+                                            <option value="trafico">Tráfico</option>
+                                            <option value="roubo">Roubo</option>
+                                            <option value="furto">Furto</option>
+                                            <option value="arrombamento">Arrombamento</option>
+                                            <option value="outro">Outro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="nome" class="required">NOME</label>
+                                        <input type="text" id="nome" name="nome" required>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="nome_mae">NOME DA MÃE</label>
+                                        <input type="text" id="nome_mae" name="nome_mae">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="cpf">CPF</label>
+                                        <input type="text" id="cpf" name="cpf">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="rg">RG</label>
+                                        <input type="text" id="rg" name="rg">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endereco">ENDEREÇO</label>
+                                <input type="text" id="endereco" name="endereco" placeholder="RUA xxx, número xx, bairro xxx, cidade">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="profissao">PROFISSÃO</label>
+                                        <input type="text" id="profissao" name="profissao">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="estado_civil">ESTADO CIVIL</label>
+                                        <select id="estado_civil" name="estado_civil">
+                                            <option value="">Selecione...</option>
+                                            <option value="solteiro">Solteiro(a)</option>
+                                            <option value="casado">Casado(a)</option>
+                                            <option value="divorciado">Divorciado(a)</option>
+                                            <option value="viuvo">Viúvo(a)</option>
+                                            <option value="outro">Outro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="escolaridade">ESCOLARIDADE</label>
+                                        <select id="escolaridade" name="escolaridade">
+                                            <option value="">Selecione...</option>
+                                            <option value="fundamental_incompleto">Fundamental Incompleto</option>
+                                            <option value="fundamental_completo">Fundamental Completo</option>
+                                            <option value="medio_incompleto">Médio Incompleto</option>
+                                            <option value="medio_completo">Médio Completo</option>
+                                            <option value="superior_incompleto">Superior Incompleto</option>
+                                            <option value="superior_completo">Superior Completo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="cutis">CÚTIS</label>
+                                        <select id="cutis" name="cutis">
+                                            <option value="">Selecione...</option>
+                                            <option value="branca">Branca</option>
+                                            <option value="preta">Preta</option>
+                                            <option value="parda">Parda</option>
+                                            <option value="amarela">Amarela</option>
+                                            <option value="indigena">Indígena</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="telefone">TELEFONE</label>
+                                        <input type="tel" id="telefone" name="telefone">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="email">EMAIL</label>
+                                        <input type="email" id="email" name="email">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foto">FOTO</label>
+                                <input type="file" id="foto" name="foto" accept="image/*">
+                                <small>Selecione uma foto do abordado (opcional).</small>
+                            </div>
+
+                            <div style="text-align: right;">
+                                <button type="submit">Cadastrar</button>
+                            </div>
+                        </form>
+                        <div class="success-message" id="successMessage">
+                            Abordado cadastrado com sucesso!
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="catalogo">
+                    <h2>Catálogo de Abordados</h2>
+                    <div style="margin-bottom: 1.5rem;">
+                        <button id="gerarPdfCompleto" class="btn-secondary">Gerar PDF Completo (ABNT)</button>
+                    </div>
+                    
+                    <div id="catalogoContent">
+                        <!-- Exemplo de seção de tipo -->
+                        <div class="tipo-section">
+                            <div class="tipo-header">
+                                <h3>Tráfico (2)</h3>
+                                <button class="btn-secondary">Gerar PDF (ABNT)</button>
+                            </div>
+                            <div class="cards-container">
+                                <!-- Exemplo de card -->
+                                <div class="card">
+                                    <div class="card-img">
+                                        <span>Sem foto</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <h3 class="card-title">João da Silva</h3>
+                                        <p class="card-text">
+                                            <strong>Local:</strong> AFONSO PENA 412<br>
+                                            <strong>Data:</strong> 19/05/2025 10:30
+                                        </p>
+                                        <button class="view-details" data-id="1">Ver Detalhes</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Exemplo de card com foto -->
+                                <div class="card">
+                                    <div class="card-img">
+                                        <img src="https://via.placeholder.com/300" alt="Foto de exemplo">
+                                    </div>
+                                    <div class="card-body">
+                                        <h3 class="card-title">Maria Oliveira</h3>
+                                        <p class="card-text">
+                                            <strong>Local:</strong> AFONSO PENA 412<br>
+                                            <strong>Data:</strong> 19/05/2025 09:15
+                                        </p>
+                                        <button class="view-details" data-id="2">Ver Detalhes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Exemplo de outra seção de tipo -->
+                        <div class="tipo-section">
+                            <div class="tipo-header">
+                                <h3>Roubo (1)</h3>
+                                <button class="btn-secondary">Gerar PDF (ABNT)</button>
+                            </div>
+                            <div class="cards-container">
+                                <!-- Exemplo de card -->
+                                <div class="card">
+                                    <div class="card-img">
+                                        <span>Sem foto</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <h3 class="card-title">Carlos Santos</h3>
+                                        <p class="card-text">
+                                            <strong>Local:</strong> AFONSO PENA 412<br>
+                                            <strong>Data:</strong> 18/05/2025 14:45
+                                        </p>
+                                        <button class="view-details" data-id="3">Ver Detalhes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Detalhes -->
+    <div class="modal" id="detailsModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <img id="modalPhoto" src="" alt="Foto do abordado" class="modal-photo" style="display: none;">
+            </div>
+            <h3 id="modalName" style="margin-bottom: 1rem;"></h3>
+            <div class="modal-grid">
+                <div>
+                    <p><strong>Local do Fato:</strong> <span id="modalLocal"></span></p>
+                    <p><strong>Tipo de Envolvido:</strong> <span id="modalTipo"></span></p>
+                    <p><strong>Nome da Mãe:</strong> <span id="modalMae"></span></p>
+                    <p><strong>CPF:</strong> <span id="modalCpf"></span></p>
+                    <p><strong>RG:</strong> <span id="modalRg"></span></p>
+                    <p><strong>Endereço:</strong> <span id="modalEndereco"></span></p>
+                </div>
+                <div>
+                    <p><strong>Profissão:</strong> <span id="modalProfissao"></span></p>
+                    <p><strong>Estado Civil:</strong> <span id="modalEstadoCivil"></span></p>
+                    <p><strong>Escolaridade:</strong> <span id="modalEscolaridade"></span></p>
+                    <p><strong>Cútis:</strong> <span id="modalCutis"></span></p>
+                    <p><strong>Telefone:</strong> <span id="modalTelefone"></span></p>
+                    <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                    <p><strong>Data de Registro:</strong> <span id="modalData"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const abordadoForm = document.getElementById('abordadoForm');
+            const successMessage = document.getElementById('successMessage');
+            const detailsModal = document.getElementById('detailsModal');
+            const closeModal = document.getElementById('closeModal');
+            const viewDetailsButtons = document.querySelectorAll('.view-details');
+            
+            // Alternar entre abas
+            function setActiveTab(tabId) {
+                // Desativar todas as abas
+                tabButtons.forEach(button => button.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                navLinks.forEach(link => link.classList.remove('active'));
+                
+                // Ativar a aba selecionada
+                document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                document.querySelector(`.nav-links a[data-tab="${tabId}"]`).classList.add('active');
+            }
+            
+            // Adicionar eventos aos botões de aba
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    setActiveTab(tabId);
+                });
+            });
+            
+            // Adicionar eventos aos links de navegação
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    setActiveTab(tabId);
+                });
+            });
+            
+            // Envio do formulário
+            abordadoForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Simulação de envio bem-sucedido
+                successMessage.style.display = 'block';
+                abordadoForm.reset();
+                
+                // Esconder mensagem após 3 segundos
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Abrir modal de detalhes
+            viewDetailsButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    
+                    // Simulação de dados do abordado
+                    let abordado;
+                    if (id === '1') {
+                        abordado = {
+                            nome: 'João da Silva',
+                            local_fato: 'AFONSO PENA 412',
+                            tipo_envolvido: 'Tráfico',
+                            nome_mae: 'Maria da Silva',
+                            cpf: '123.456.789-00',
+                            rg: '1234567',
+                            endereco: 'Rua das Flores, 123, Centro',
+                            profissao: 'Desempregado',
+                            estado_civil: 'Solteiro',
+                            escolaridade: 'Médio Completo',
+                            cutis: 'Parda',
+                            telefone: '(11) 98765-4321',
+                            email: 'joao@exemplo.com',
+                            data_registro: '19/05/2025 10:30',
+                            foto_path: ''
+                        };
+                    } else if (id === '2') {
+                        abordado = {
+                            nome: 'Maria Oliveira',
+                            local_fato: 'AFONSO PENA 412',
+                            tipo_envolvido: 'Tráfico',
+                            nome_mae: 'Ana Oliveira',
+                            cpf: '987.654.321-00',
+                            rg: '7654321',
+                            endereco: 'Av. Principal, 456, Jardim',
+                            profissao: 'Estudante',
+                            estado_civil: 'Solteira',
+                            escolaridade: 'Superior Incompleto',
+                            cutis: 'Branca',
+                            telefone: '(11) 91234-5678',
+                            email: 'maria@exemplo.com',
+                            data_registro: '19/05/2025 09:15',
+                            foto_path: 'https://via.placeholder.com/300'
+                        };
+                    } else {
+                        abordado = {
+                            nome: 'Carlos Santos',
+                            local_fato: 'AFONSO PENA 412',
+                            tipo_envolvido: 'Roubo',
+                            nome_mae: 'Joana Santos',
+                            cpf: '456.789.123-00',
+                            rg: '3456789',
+                            endereco: 'Rua Secundária, 789, Vila Nova',
+                            profissao: 'Autônomo',
+                            estado_civil: 'Casado',
+                            escolaridade: 'Fundamental Completo',
+                            cutis: 'Preta',
+                            telefone: '(11) 95678-1234',
+                            email: 'carlos@exemplo.com',
+                            data_registro: '18/05/2025 14:45',
+                            foto_path: ''
+                        };
+                    }
+                    
+                    // Preencher dados no modal
+                    document.getElementById('modalName').textContent = abordado.nome;
+                    document.getElementById('modalLocal').textContent = abordado.local_fato;
+                    document.getElementById('modalTipo').textContent = abordado.tipo_envolvido;
+                    document.getElementById('modalMae').textContent = abordado.nome_mae || 'Não informado';
+                    document.getElementById('modalCpf').textContent = abordado.cpf || 'Não informado';
+                    document.getElementById('modalRg').textContent = abordado.rg || 'Não informado';
+                    document.getElementById('modalEndereco').textContent = abordado.endereco || 'Não informado';
+                    document.getElementById('modalProfissao').textContent = abordado.profissao || 'Não informado';
+                    document.getElementById('modalEstadoCivil').textContent = abordado.estado_civil || 'Não informado';
+                    document.getElementById('modalEscolaridade').textContent = abordado.escolaridade || 'Não informado';
+                    document.getElementById('modalCutis').textContent = abordado.cutis || 'Não informado';
+                    document.getElementById('modalTelefone').textContent = abordado.telefone || 'Não informado';
+                    document.getElementById('modalEmail').textContent = abordado.email || 'Não informado';
+                    document.getElementById('modalData').textContent = abordado.data_registro;
+                    
+                    const photoElement = document.getElementById('modalPhoto');
+                    if (abordado.foto_path) {
+                        photoElement.src = abordado.foto_path;
+                        photoElement.style.display = 'block';
+                    } else {
+                        photoElement.style.display = 'none';
+                    }
+                    
+                    // Exibir modal
+                    detailsModal.style.display = 'block';
+                });
+            });
+            
+            // Fechar modal
+            closeModal.addEventListener('click', function() {
+                detailsModal.style.display = 'none';
+            });
+            
+            // Fechar modal ao clicar fora do conteúdo
+            window.addEventListener('click', function(e) {
+                if (e.target === detailsModal) {
+                    detailsModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

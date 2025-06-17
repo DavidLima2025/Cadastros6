@@ -604,28 +604,6 @@
                 padding-top: 1rem !important;
             }
         }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-        }
-        
-        .status-online {
-            background-color: var(--cor-sucesso);
-        }
-        
-        .status-offline {
-            background-color: var(--cor-erro);
-        }
-        
-        .sync-status {
-            font-size: 0.8rem;
-            color: #666;
-            margin-left: 1rem;
-        }
     </style>
     
     <!-- Bibliotecas para PDF -->
@@ -635,10 +613,6 @@
 <body>
     <header>
         <h1>Sistema de Registro de Abordados</h1>
-        <div class="sync-status">
-            <span class="status-indicator" id="status-indicator"></span>
-            <span id="status-text">Verificando conexão...</span>
-        </div>
     </header>
     
     <nav>
@@ -769,7 +743,6 @@
             <div class="card">
                 <h2>Catálogo de Abordados</h2>
                 <div style="margin-bottom: 1rem;">
-                    <button id="btn-sincronizar" class="secundario">Sincronizar</button>
                     <button id="btn-gerar-pdf" class="secundario">Gerar PDF</button>
                     <button id="btn-expandir-todos" class="secundario">Expandir Todos</button>
                     <button id="btn-recolher-todos" class="secundario">Recolher Todos</button>
@@ -840,7 +813,6 @@
         let abordadoParaExcluir = null;
         let abordadoParaEditarFoto = null;
         let abordadoParaEditarDados = null;
-        let isOnline = navigator.onLine;
         
         // Elementos DOM
         const tabCadastro = document.getElementById("tab-cadastro");
@@ -852,33 +824,6 @@
         const modalExcluir = document.getElementById("modal-excluir");
         const modalEditarFoto = document.getElementById("modal-editar-foto");
         const modalEditarDados = document.getElementById("modal-editar-dados");
-        const statusIndicator = document.getElementById("status-indicator");
-        const statusText = document.getElementById("status-text");
-        
-        // Função para atualizar status de conexão
-        function atualizarStatusConexao() {
-            if (isOnline) {
-                statusIndicator.className = "status-indicator status-online";
-                statusText.textContent = "Online - Dados sincronizados";
-            } else {
-                statusIndicator.className = "status-indicator status-offline";
-                statusText.textContent = "Offline - Dados salvos localmente";
-            }
-        }
-        
-        // Função para verificar conectividade
-        async function verificarConectividade() {
-            try {
-                const response = await fetch("/.netlify/functions/buscarAbordados", {
-                    method: "GET",
-                    signal: AbortSignal.timeout(5000)
-                });
-                isOnline = response.ok;
-            } catch (error) {
-                isOnline = false;
-            }
-            atualizarStatusConexao();
-        }
         
         // Função para mostrar alertas
         function mostrarAlerta(mensagem, tipo = "success") {
@@ -913,126 +858,30 @@
         
         // Função para salvar abordado via Netlify Functions
         async function salvarAbordadoNetlify(abordado) {
-            if (!isOnline) {
-                console.log("Offline - dados salvos apenas localmente");
-                return { success: false, offline: true };
-            }
-            
             try {
                 const response = await fetch("/.netlify/functions/salvarAbordado", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify(abordado),
-                    signal: AbortSignal.timeout(10000)
+                    body: JSON.stringify(abordado)
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
                     console.log("Dados salvos no banco Neon via Netlify Functions");
-                    // Marcar como sincronizado
-                    abordado.sincronizado = true;
-                    abordado.id_servidor = result.id;
                 } else {
                     console.error("Erro ao salvar no banco:", result.error);
                 }
-                
-                return result;
             } catch (error) {
                 console.error("Erro na comunicação com Netlify Functions:", error);
-                isOnline = false;
-                atualizarStatusConexao();
-                return { success: false, error: error.message };
-            }
-        }
-        
-        // Função para buscar abordados do servidor
-        async function buscarAbordadosServidor() {
-            if (!isOnline) return { success: false, offline: true };
-            
-            try {
-                const response = await fetch("/.netlify/functions/buscarAbordados", {
-                    method: "GET",
-                    signal: AbortSignal.timeout(10000)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    return { success: true, data: result.data };
-                } else {
-                    console.error("Erro ao buscar dados:", result.error);
-                    return { success: false, error: result.error };
-                }
-            } catch (error) {
-                console.error("Erro ao buscar dados do servidor:", error);
-                isOnline = false;
-                atualizarStatusConexao();
-                return { success: false, error: error.message };
-            }
-        }
-        
-        // Função para sincronizar dados
-        async function sincronizarDados() {
-            if (!isOnline) {
-                mostrarAlerta("Sem conexão com a internet", "error");
-                return;
-            }
-            
-            const btnSincronizar = document.getElementById("btn-sincronizar");
-            btnSincronizar.disabled = true;
-            btnSincronizar.innerHTML = '<span class="loading"></span>Sincronizando...';
-            
-            try {
-                // Buscar dados do servidor
-                const resultado = await buscarAbordadosServidor();
-                
-                if (resultado.success) {
-                    // Mesclar dados locais com dados do servidor
-                    const dadosServidor = resultado.data.map(item => ({
-                        ...item,
-                        id: item.id.toString(),
-                        id_servidor: item.id,
-                        sincronizado: true
-                    }));
-                    
-                    // Manter dados locais não sincronizados
-                    const dadosLocaisNaoSincronizados = abordados.filter(item => !item.sincronizado);
-                    
-                    // Combinar dados
-                    abordados = [...dadosServidor, ...dadosLocaisNaoSincronizados];
-                    
-                    // Salvar localmente
-                    localStorage.setItem("abordados", JSON.stringify(abordados));
-                    
-                    // Tentar sincronizar dados locais não sincronizados
-                    for (const abordado of dadosLocaisNaoSincronizados) {
-                        await salvarAbordadoNetlify(abordado);
-                    }
-                    
-                    renderizarCatalogo();
-                    mostrarAlerta("Dados sincronizados com sucesso!");
-                } else {
-                    mostrarAlerta("Erro ao sincronizar dados", "error");
-                }
-            } catch (error) {
-                console.error("Erro na sincronização:", error);
-                mostrarAlerta("Erro na sincronização", "error");
-            } finally {
-                btnSincronizar.disabled = false;
-                btnSincronizar.innerHTML = "Sincronizar";
             }
         }
         
         // Função para processar formulário
         async function processarFormulario(e) {
             e.preventDefault();
-            
-            const btnSalvar = document.getElementById("btn-salvar");
-            btnSalvar.disabled = true;
-            btnSalvar.innerHTML = '<span class="loading"></span>Salvando...';
             
             const formData = new FormData(formAbordado);
             const novoAbordado = {
@@ -1052,8 +901,7 @@
                 telefone: formData.get("telefone"),
                 email: formData.get("email"),
                 observacoes: formData.get("observacoes"),
-                foto: null,
-                sincronizado: false
+                foto: null
             };
             
             // Processar foto se fornecida
@@ -1063,59 +911,27 @@
                 reader.onload = async function(e) {
                     novoAbordado.foto = e.target.result;
                     
-                    // Salvar localmente primeiro
+                    // Salvar localmente
                     abordados.push(novoAbordado);
                     localStorage.setItem("abordados", JSON.stringify(abordados));
                     
-                    // Tentar salvar no servidor
-                    const resultado = await salvarAbordadoNetlify(novoAbordado);
+                    // Tentar salvar no Netlify/Neon
+                    await salvarAbordadoNetlify(novoAbordado);
                     
-                    if (resultado.success) {
-                        // Atualizar dados locais com informações do servidor
-                        const index = abordados.findIndex(a => a.id === novoAbordado.id);
-                        if (index !== -1) {
-                            abordados[index].sincronizado = true;
-                            abordados[index].id_servidor = resultado.id;
-                            localStorage.setItem("abordados", JSON.stringify(abordados));
-                        }
-                        mostrarAlerta("Registro salvo e sincronizado com sucesso!");
-                    } else if (resultado.offline) {
-                        mostrarAlerta("Registro salvo localmente (sem conexão)", "success");
-                    } else {
-                        mostrarAlerta("Registro salvo localmente (erro na sincronização)", "success");
-                    }
-                    
+                    mostrarAlerta("Registro salvo com sucesso!");
                     formAbordado.reset();
-                    btnSalvar.disabled = false;
-                    btnSalvar.innerHTML = "Salvar Registro";
                 };
                 reader.readAsDataURL(fotoFile);
             } else {
-                // Salvar localmente primeiro
+                // Salvar localmente
                 abordados.push(novoAbordado);
                 localStorage.setItem("abordados", JSON.stringify(abordados));
                 
-                // Tentar salvar no servidor
-                const resultado = await salvarAbordadoNetlify(novoAbordado);
+                // Tentar salvar no Netlify/Neon
+                await salvarAbordadoNetlify(novoAbordado);
                 
-                if (resultado.success) {
-                    // Atualizar dados locais com informações do servidor
-                    const index = abordados.findIndex(a => a.id === novoAbordado.id);
-                    if (index !== -1) {
-                        abordados[index].sincronizado = true;
-                        abordados[index].id_servidor = resultado.id;
-                        localStorage.setItem("abordados", JSON.stringify(abordados));
-                    }
-                    mostrarAlerta("Registro salvo e sincronizado com sucesso!");
-                } else if (resultado.offline) {
-                    mostrarAlerta("Registro salvo localmente (sem conexão)", "success");
-                } else {
-                    mostrarAlerta("Registro salvo localmente (erro na sincronização)", "success");
-                }
-                
+                mostrarAlerta("Registro salvo com sucesso!");
                 formAbordado.reset();
-                btnSalvar.disabled = false;
-                btnSalvar.innerHTML = "Salvar Registro";
             }
         }
         
@@ -1172,18 +988,12 @@
         // Função para criar card de abordado
         function criarCardAbordado(abordado) {
             const dataFormatada = new Date(abordado.data_registro).toLocaleString("pt-BR");
-            const statusSync = abordado.sincronizado ? 
-                '<span style="color: green; font-size: 0.8rem;">✓ Sincronizado</span>' : 
-                '<span style="color: orange; font-size: 0.8rem;">⚠ Não sincronizado</span>';
             
             return `
                 <div class="abordado-card">
                     <h4>
                         ${abordado.nome}
-                        <div>
-                            ${statusSync}
-                            <button onclick="gerarPdfIndividual('${abordado.id}')" class="secundario">PDF</button>
-                        </div>
+                        <button onclick="gerarPdfIndividual('${abordado.id}')" class="secundario">PDF</button>
                     </h4>
                     
                     ${abordado.foto ? `
@@ -1255,26 +1065,8 @@
         }
         
         // Função para confirmar exclusão
-        async function confirmarExclusao() {
+        function confirmarExclusao() {
             if (abordadoParaExcluir) {
-                const abordado = abordados.find(a => a.id === abordadoParaExcluir);
-                
-                // Tentar excluir do servidor se estiver sincronizado
-                if (abordado && abordado.sincronizado && abordado.id_servidor && isOnline) {
-                    try {
-                        const response = await fetch(`/.netlify/functions/excluirAbordado/${abordado.id_servidor}`, {
-                            method: "DELETE"
-                        });
-                        
-                        if (!response.ok) {
-                            console.error("Erro ao excluir do servidor");
-                        }
-                    } catch (error) {
-                        console.error("Erro na comunicação com o servidor:", error);
-                    }
-                }
-                
-                // Excluir localmente
                 abordados = abordados.filter(a => a.id !== abordadoParaExcluir);
                 localStorage.setItem("abordados", JSON.stringify(abordados));
                 renderizarCatalogo();
@@ -1300,7 +1092,6 @@
                     const abordado = abordados.find(a => a.id === abordadoParaEditarFoto);
                     if (abordado) {
                         abordado.foto = e.target.result;
-                        abordado.sincronizado = false; // Marcar como não sincronizado
                         localStorage.setItem("abordados", JSON.stringify(abordados));
                         renderizarCatalogo();
                         fecharModal(modalEditarFoto);
@@ -1445,7 +1236,6 @@
                     abordado.telefone = document.getElementById("edit-telefone").value;
                     abordado.email = document.getElementById("edit-email").value;
                     abordado.observacoes = document.getElementById("edit-observacoes").value;
-                    abordado.sincronizado = false; // Marcar como não sincronizado
                     
                     localStorage.setItem("abordados", JSON.stringify(abordados));
                     renderizarCatalogo();
@@ -1507,11 +1297,11 @@
             const agora = new Date().toLocaleString("pt-BR");
             
             let html = `
-                <div style="font-family: Arial, sans-serif; max-width: 210mm; margin: 0 auto; padding: 15mm; background-color: white; color: #000; font-size: 10pt; line-height: 1.4;">
-                    <div style="text-align: center; margin-bottom: 10mm;">
-                        <div style="font-size: 16pt; font-weight: bold; margin-bottom: 5mm;">Sistema de Registro de Abordados</div>
-                        <div style="font-size: 12pt; margin-bottom: 8mm;">${titulo}</div>
-                        <div style="font-size: 10pt; margin-bottom: 15mm;">Gerado em: ${agora}</div>
+                <div class="pdf-content">
+                    <div class="pdf-header">
+                        <div class="pdf-title">Sistema de Registro de Abordados</div>
+                        <div class="pdf-subtitle">${titulo}</div>
+                        <div class="pdf-date">Gerado em: ${agora}</div>
                     </div>
             `;
             
@@ -1519,7 +1309,7 @@
                 const dataFormatada = new Date(abordado.data_registro).toLocaleString("pt-BR");
                 
                 html += `
-                    <div style="margin-bottom: 15mm; page-break-inside: avoid;">
+                    <div class="pdf-abordado">
                         <h3>${index + 1}. ${abordado.nome}</h3>
                         
                         ${abordado.foto ? `
@@ -1666,7 +1456,6 @@
         
         formAbordado.addEventListener("submit", processarFormulario);
         
-        document.getElementById("btn-sincronizar").addEventListener("click", sincronizarDados);
         document.getElementById("btn-gerar-pdf").addEventListener("click", gerarPdfCompleto);
         document.getElementById("btn-expandir-todos").addEventListener("click", expandirTodas);
         document.getElementById("btn-recolher-todos").addEventListener("click", recolherTodas);
@@ -1707,20 +1496,7 @@
             }
         });
         
-        // Monitorar mudanças de conectividade
-        window.addEventListener("online", () => {
-            isOnline = true;
-            atualizarStatusConexao();
-            verificarConectividade();
-        });
-        
-        window.addEventListener("offline", () => {
-            isOnline = false;
-            atualizarStatusConexao();
-        });
-        
-        // Inicialização
-        verificarConectividade();
+        // Inicializar catálogo
         renderizarCatalogo();
         
         // Adicionar alguns dados de exemplo se não houver nenhum
@@ -1742,8 +1518,7 @@
                 telefone: "(11) 98765-4321",
                 email: "joao@exemplo.com",
                 observacoes: "Abordado demonstrou nervosismo durante a abordagem. Possui tatuagem de dragão no braço direito.",
-                foto: null,
-                sincronizado: false
+                foto: null
             });
             
             abordados.push({
@@ -1763,8 +1538,7 @@
                 telefone: "(11) 91234-5678",
                 email: "pedro@exemplo.com",
                 observacoes: "Encontrado com objetos de procedência duvidosa. Já possui passagem por crimes semelhantes.",
-                foto: null,
-                sincronizado: false
+                foto: null
             });
             
             abordados.push({
@@ -1784,8 +1558,7 @@
                 telefone: "(11) 97777-8888",
                 email: "carlos@exemplo.com",
                 observacoes: "",
-                foto: null,
-                sincronizado: false
+                foto: null
             });
             
             localStorage.setItem("abordados", JSON.stringify(abordados));
