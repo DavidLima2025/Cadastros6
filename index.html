@@ -1,1797 +1,523 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Registro de Abordados</title>
-    <style>
-        :root {
-            --cor-primaria: #000000; /* Preto */
-            --cor-secundaria: #D2B48C; /* Caqui */
-            --cor-texto: #333333;
-            --cor-fundo: #f5f5f5;
-            --cor-borda: #cccccc;
-            --cor-sucesso: #4CAF50;
-            --cor-erro: #f44336;
-            --cor-aviso: #ff9800;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-        
-        body {
-            background-color: var(--cor-fundo);
-            color: var(--cor-texto);
-            line-height: 1.6;
-            -webkit-text-size-adjust: 100%;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        header {
-            background-color: var(--cor-primaria);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        nav {
-            display: flex;
-            justify-content: center;
-            background-color: var(--cor-secundaria);
-            padding: 0.5rem;
-        }
-        
-        nav a {
-            color: var(--cor-primaria);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            margin: 0 0.5rem;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        nav a:hover, nav a.active {
-            background-color: var(--cor-primaria);
-            color: white;
-        }
-        
-        main {
-            max-width: 1200px;
-            margin: 1rem auto;
-            padding: 1rem;
-        }
-        
-        h1, h2, h3 {
-            color: var(--cor-primaria);
-            margin-bottom: 1rem;
-        }
-        
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: var(--cor-primaria);
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--cor-borda);
-            border-radius: 4px;
-            font-size: 16px; /* Evita zoom em iOS */
-            background-color: #f9f9f9;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        
-        /* Estilo específico para select no iOS */
-        select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.7rem center;
-            background-size: 1rem;
-            padding-right: 2.5rem;
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--cor-secundaria);
-            box-shadow: 0 0 0 2px rgba(210, 180, 140, 0.3);
-        }
-        
-        button {
-            background-color: var(--cor-primaria);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px; /* Evita zoom em iOS */
-            font-weight: bold;
-            transition: background-color 0.3s;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            min-height: 44px; /* Tamanho mínimo recomendado para iOS */
-        }
-        
-        button:hover {
-            background-color: #333333;
-        }
-        
-        button:active {
-            transform: translateY(1px);
-        }
-        
-        button.secundario {
-            background-color: var(--cor-secundaria);
-            color: var(--cor-primaria);
-        }
-        
-        button.secundario:hover {
-            background-color: #c0a378;
-        }
-        
-        button.perigo {
-            background-color: var(--cor-erro);
-        }
-        
-        button.perigo:hover {
-            background-color: #d32f2f;
-        }
-        
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-        }
-        
-        .alert-error {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            main {
-                padding: 0.5rem;
-            }
-            
-            .card {
-                padding: 1rem;
-            }
-            
-            button {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-            
-            .abordado-card h4 {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .abordado-card h4 button {
-                margin-top: 0.5rem;
-                width: 100%;
-            }
-            
-            .catalogo-section-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .catalogo-section-header button {
-                margin-top: 0.5rem;
-                width: 100%;
-            }
-            
-            .abordado-actions {
-                flex-direction: column;
-            }
-            
-            .abordado-actions button {
-                width: 100%;
-            }
-            
-            .modal-content {
-                width: 95%;
-                margin: 5% auto;
-            }
-            
-            .abordado-info {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .catalogo-section {
-            margin-bottom: 1rem;
-            border-left: 5px solid var(--cor-secundaria);
-            padding-left: 1rem;
-        }
-        
-        .catalogo-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 0.5rem 0;
-            position: relative;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .catalogo-section-header h3 {
-            margin: 0;
-            flex-grow: 1;
-        }
-        
-        .catalogo-section-header::after {
-            content: '\25BC';
-            font-size: 0.8rem;
-            margin-left: 1rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .catalogo-section.expanded .catalogo-section-header::after {
-            transform: rotate(180deg);
-        }
-        
-        .catalogo-section-header button {
-            font-size: 0.8rem;
-            padding: 0.5rem 1rem;
-            margin-left: 1rem;
-            pointer-events: auto;
-            z-index: 1;
-        }
-        
-        .catalogo-section-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-out;
-            padding-top: 0;
-        }
-        
-        .catalogo-section.expanded .catalogo-section-content {
-            max-height: 10000px;
-            padding-top: 1rem;
-            transition: max-height 0.5s ease-in;
-        }
-        
-        .abordado-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-        
-        .abordado-card h4 {
-            margin-bottom: 0.5rem;
-            color: var(--cor-primaria);
-            border-bottom: 1px solid var(--cor-secundaria);
-            padding-bottom: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .abordado-card h4 button {
-            font-size: 0.7rem;
-            padding: 0.3rem 0.7rem;
-        }
-        
-        .abordado-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .abordado-info p {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        
-        .abordado-info strong {
-            color: var(--cor-primaria);
-        }
-        
-        .abordado-observacoes {
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            border-left: 3px solid var(--cor-secundaria);
-        }
-        
-        .abordado-observacoes p {
-            margin: 0;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
-        }
-        
-        .abordado-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-        
-        .abordado-actions button {
-            font-size: 0.8rem;
-            padding: 0.5rem 1rem;
-        }
-        
-        .foto-container {
-            width: 100%;
-            height: 300px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        
-        .foto-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .foto-placeholder {
-            color: #999;
-            text-align: center;
-            font-style: italic;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 1.5rem;
-            border-radius: 8px;
-            max-width: 500px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .modal-header h3 {
-            margin: 0;
-        }
-        
-        .close {
-            color: #aaa;
-            font-size: 1.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .close:hover {
-            color: var(--cor-primaria);
-        }
-        
-        .modal-body {
-            margin-bottom: 1.5rem;
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--cor-secundaria);
-        }
-        
-        .tab {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 4px 4px 0 0;
-            margin-right: 0.25rem;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .tab.active {
-            background-color: var(--cor-secundaria);
-            color: var(--cor-primaria);
-            font-weight: bold;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 1.5rem;
-            height: 1.5rem;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 0.5rem;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .btn-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.8;
-            cursor: not-allowed;
-        }
-        
-        /* Melhorias específicas para iOS/Safari */
-        @supports (-webkit-touch-callout: none) {
-            input[type="file"] {
-                font-size: 16px;
-            }
-            
-            .modal {
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            button {
-                -webkit-appearance: none;
-                border-radius: 4px;
-            }
-        }
-        
-        /* Melhorias para dispositivos móveis */
-        @media (max-width: 480px) {
-            nav {
-                flex-direction: row;
-                justify-content: center;
-            }
-            
-            nav a {
-                padding: 0.75rem 1rem;
-                margin: 0 0.25rem;
-                font-size: 1.1rem;
-            }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
-            
-            h2 {
-                font-size: 1.3rem;
-            }
-            
-            input, select, textarea {
-                font-size: 16px;
-                padding: 0.8rem;
-            }
-            
-            .modal-footer {
-                flex-direction: column;
-            }
-            
-            .modal-footer button {
-                width: 100%;
-            }
-            
-            .foto-container {
-                height: 250px;
-            }
-        }
-        
-        /* Estilos para impressão e PDF */
-        @media print {
-            body {
-                font-family: Arial, sans-serif;
-                font-size: 12pt;
-                line-height: 1.5;
-                color: #000;
-                background: #fff;
-            }
-            
-            header, nav, button, .abordado-actions, .catalogo-section-header button, .catalogo-section-header::after {
-                display: none !important;
-            }
-            
-            .card {
-                box-shadow: none;
-                border: 1px solid #ddd;
-                page-break-inside: avoid;
-            }
-            
-            h1, h2, h3, h4 {
-                page-break-after: avoid;
-            }
-            
-            .abordado-card {
-                page-break-inside: avoid;
-                margin-bottom: 20mm;
-                border: 1px solid #ddd;
-                padding: 5mm;
-            }
-            
-            .foto-container {
-                max-height: 100mm;
-            }
-            
-            .foto-container img {
-                max-height: 90mm;
-            }
-            
-            .catalogo-section-content {
-                max-height: none !important;
-                overflow: visible !important;
-                padding-top: 1rem !important;
-            }
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-        }
-        
-        .status-online {
-            background-color: var(--cor-sucesso);
-        }
-        
-        .status-offline {
-            background-color: var(--cor-erro);
-        }
-        
-        .sync-status {
-            font-size: 0.8rem;
-            color: #666;
-            margin-left: 1rem;
-        }
-    </style>
-    
-    <!-- Bibliotecas para PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auditoria Operacional - Furto de Veículos 6ª CIA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    body { background:#07111f; color:#e8f1ff; }
+    .leaflet-container { background:#091827; }
+    .card-glow { box-shadow: 0 0 0 1px rgba(75, 134, 255, .25), 0 12px 40px rgba(0,0,0,.25); }
+    .scrollbar::-webkit-scrollbar { width: 8px; height:8px; }
+    .scrollbar::-webkit-scrollbar-thumb { background:#21476b; border-radius:20px; }
+    .grid-bg { background-image: radial-gradient(circle at 1px 1px, rgba(109,179,255,.13) 1px, transparent 0); background-size: 22px 22px; }
+    .heat-label { background: rgba(255,60,60,.92); color: white; border: 2px solid rgba(255,255,255,.85); border-radius: 999px; font-weight: 900; text-align: center; box-shadow: 0 0 22px rgba(255,45,45,.7); }
+    .heat-caption { background: rgba(7,17,31,.88); color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px; padding:2px 6px; font-size:11px; white-space:nowrap; }
+    .map-pin { width:14px; height:14px; border-radius:999px; border:2px solid white; box-shadow:0 0 0 2px rgba(0,0,0,.35), 0 0 16px rgba(255,255,255,.45); }
+    .map-pin.audit { background:#ff3b3b; }
+    .map-pin.rec { background:#45e06f; }
+    .map-pin.nao { background:#ff9f1c; }
+    .heat-bubble { border-radius:999px; border:2px solid rgba(255,255,255,.9); background:rgba(255,45,45,.32); box-shadow:0 0 28px rgba(255,45,45,.65); color:#fff; font-weight:900; text-align:center; }
+    body.map-lock { overflow:hidden !important; }
+    .fullscreen-overlay { position: fixed !important; inset: 0 !important; z-index: 2147483000 !important; background:#07111f !important; padding:14px !important; display:flex !important; flex-direction:column !important; }
+    .fullscreen-map-canvas { height: calc(100vh - 116px) !important; min-height: 420px !important; width:100% !important; flex:1 1 auto !important; display:block !important; }
+    @media (max-width: 768px){ .fullscreen-overlay { padding:8px !important; } .fullscreen-map-canvas { height: calc(100vh - 150px) !important; min-height: 360px !important; } }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Sistema de Registro de Abordados</h1>
-        <div class="sync-status">
-            <span class="status-indicator" id="status-indicator"></span>
-            <span id="status-text">Verificando conexão...</span>
+  <div id="root"></div>
+  <script>
+    window.INITIAL_DATA = [{"REDS": "2026-001439881-001", "DATA_HORA": "2026-01-10 21:58:34", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA TUPINAMBAS, 346 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "JANEIRO", "NUMERO_MES": 1, "SETOR": "PRAÇA SETE", "DATA": "2026-01-10", "HORA": "21:58", "DIA_SEMANA": "SÁB", "MES_LABEL": "01/2026"}, {"REDS": "2026-001837113-001", "DATA_HORA": "2026-01-12 22:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "AVENIDA OIAPOQUE, 264 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "JANEIRO", "NUMERO_MES": 1, "SETOR": "RODOVIÁRIA", "DATA": "2026-01-12", "HORA": "22:30", "DIA_SEMANA": "SEG", "MES_LABEL": "01/2026"}, {"REDS": "2026-001994500-001", "DATA_HORA": "2026-01-14 09:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "AVENIDA ANDRADAS, 471 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-002101062-001", "ENDERECO_LOCALIZACAO": "RUA GUARANI, 341 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "APROXIMADAMENTE  900M", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "EM QUE  PESE O VEÍCULO TENHA SIDO RECUPADO NO MESMO DIA, AO LER OS BOS REFERENTES AO FURTO E A LOCALIZAÇÃO DO VEÍCULO, ENTENDE-SE QUE DE FATO OCORREU O FURTO DO VEÍCULO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "JANEIRO", "NUMERO_MES": 1, "SETOR": "PRAÇA SETE", "DATA": "2026-01-14", "HORA": "09:00", "DIA_SEMANA": "QUA", "MES_LABEL": "01/2026"}, {"REDS": "2026-004294160-001", "DATA_HORA": "2026-01-28 15:29:25", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "AVENIDA SANTOS DUMONT, 525 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-004385531-001", "ENDERECO_LOCALIZACAO": "RUA BARREIRO, 257 - SAO GERALDO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "EM QUE  PESE O VEÍCULO TENHA SIDO RECUPADO NO MESMO DIA, AO LER OS BOS REFERENTES AO FURTO E A LOCALIZAÇÃO DO VEÍCULO, ENTENDE-SE QUE DE FATO OCORREU O FURTO DO VEÍCULO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "JANEIRO", "NUMERO_MES": 1, "SETOR": "RODOVIÁRIA", "DATA": "2026-01-28", "HORA": "15:29", "DIA_SEMANA": "QUA", "MES_LABEL": "01/2026"}, {"REDS": "2026-005462948-001", "DATA_HORA": "2026-02-04 17:39:31", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "AVENIDA AFONSO PENA / RUA ESPIRITO SANTO - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-04", "HORA": "17:39", "DIA_SEMANA": "QUA", "MES_LABEL": "02/2026"}, {"REDS": "2026-005964494-001", "DATA_HORA": "2026-02-06 22:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "AVENIDA OIAPOQUE, 220 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "RODOVIÁRIA", "DATA": "2026-02-06", "HORA": "22:30", "DIA_SEMANA": "SEX", "MES_LABEL": "02/2026"}, {"REDS": "2026-007183516-001", "DATA_HORA": "2026-02-14 05:38:38", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA BAHIA, 166 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-007339127-001", "ENDERECO_LOCALIZACAO": "AVENIDA CONTORNO, 1884 - FLORESTA - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "1,3km", "OBSERVACOES": "SOLICITANTE SE  ESQUECEU DE ONDE HAVIA ESTACIONADO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE REGISTROU O BO, PORÉM APÓS ANDAR PELO SUPOSTO LOCAL DO FURTO, PERCEBEU QUE SUA MOTO PERMANECIA LÁ", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "RODOVIÁRIA", "DATA": "2026-02-14", "HORA": "05:38", "DIA_SEMANA": "SÁB", "MES_LABEL": "02/2026"}, {"REDS": "2026-007629512-001", "DATA_HORA": "2026-02-16 22:25:40", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA GUAICURUS, 643 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-007637785-001", "ENDERECO_LOCALIZACAO": "AVENIDA CRISTIANO MACHADO / AVENIDA SARAMENHA - FLORAMAR - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "VEÍCULO  FURTADO E RECUPERADO EM UM ACIDENTE DE TRANSITO NO DIA SEGUINTE, ONDE MENORES CONDUZIAM O VEÍCULO FURTADO.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "RODOVIÁRIA", "DATA": "2026-02-16", "HORA": "22:25", "DIA_SEMANA": "SEG", "MES_LABEL": "02/2026"}, {"REDS": "2026-007724074-001", "DATA_HORA": "2026-02-17 16:06:11", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA CURITIBA, 823 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-008003959-001", "ENDERECO_LOCALIZACAO": "AVENIDA AFONSO PENA / RUA CURITIBA - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "450m", "OBSERVACOES": "SOLICITANTE SE  ESQUECEU DE ONDE HAVIA ESTACIONADO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE  REGISTROU UM BOLETIM DE OCORRÊNCIA RELATANDO A RECUPERAÇÃO DO VEÍCULO, INFORMANDO QUE HAVIA SE ESQUECIDO O LOCAL EM QUE ESTACIONOU O VEÍCULO, GERANDO ERRONEAMENTE UMA OCORRÊNCIA DE FURTO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-17", "HORA": "16:06", "DIA_SEMANA": "TER", "MES_LABEL": "02/2026"}, {"REDS": "2026-007872025-001", "DATA_HORA": "2026-02-18 08:05:16", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "AVENIDA OLEGARIO MACIEL, 169 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "", "ENDERECO_LOCALIZACAO": "", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-18", "HORA": "08:05", "DIA_SEMANA": "QUA", "MES_LABEL": "02/2026"}, {"REDS": "2026-008620168-001", "DATA_HORA": "2026-02-23 08:36:33", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA TUPIS, 185 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "", "ENDERECO_LOCALIZACAO": "", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-23", "HORA": "08:36", "DIA_SEMANA": "SEG", "MES_LABEL": "02/2026"}, {"REDS": "2026-008974266-001", "DATA_HORA": "2026-02-24 19:26:02", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA RIO DE JANEIRO, 1040 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-009067671-001", "ENDERECO_LOCALIZACAO": "RUA SAO PAULO, 2500 - LOURDES - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "1,5km", "OBSERVACOES": "SOLICITANTE SE  ESQUECEU DE ONDE HAVIA ESTACIONADO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE COMPARECEU À BASE E INFORMOU QUE HAVIA REGISTRADO O FURTO DE SEU VEÍCULO, PORÉM, AO ANDAR PELAS PROXIMIDADES, LOCALIZOU O MESMO. RELATA QUE CONFUNDIU AS RUAS, O QUE ACABOU GERANDO O REGISTRO DE FORMA EQUIVOCADA.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-24", "HORA": "19:26", "DIA_SEMANA": "TER", "MES_LABEL": "02/2026"}, {"REDS": "2026-009100896-001", "DATA_HORA": "2026-02-25 19:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA ESPIRITO SANTO, 437 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-009100896-002", "ENDERECO_LOCALIZACAO": "RUA ESPIRITO SANTO, 437 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "SOLICIENTANTE INFORMOU A QUE SEU MARIDO PODERIA  TER PEGO  O VEÍCULO, POIS O MESMO ESTAVA NO NOME DELE E ESTAVAM PASSANDO POR DESENTEDIMENTOS FAMILIÁRES.", "CABE_AUDITORIA": "SIM", "MOTIVO": "O PROPRIETÁRIO DO VEÍCULO COMPARECEU A DELEGACIA PARA REMOVER A QUEIXA FURTO, INFORMANDO QUE SUA ESPOSA HAVIA FEITO UMA FALSA COMUNICAÇÃO DE CRIME E QUE SEU VEÍCULO ESTAVA EM SEU NOME.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "PRAÇA SETE", "DATA": "2026-02-25", "HORA": "19:00", "DIA_SEMANA": "QUA", "MES_LABEL": "02/2026"}, {"REDS": "2026-009320470-001", "DATA_HORA": "2026-02-26 19:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA RIO DE JANEIRO / RUA TUPIS - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "FEVEREIRO", "NUMERO_MES": 2, "SETOR": "MERCADO CENTRAL", "DATA": "2026-02-26", "HORA": "19:30", "DIA_SEMANA": "QUI", "MES_LABEL": "02/2026"}, {"REDS": "2026-010505962-001", "DATA_HORA": "2026-03-05 22:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA CURITIBA, 149 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "RODOVIÁRIA", "DATA": "2026-03-05", "HORA": "22:00", "DIA_SEMANA": "QUI", "MES_LABEL": "03/2026"}, {"REDS": "2026-011039098-001", "DATA_HORA": "2026-03-07 19:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA AARAO REIS, 570 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "PRAÇA SETE", "DATA": "2026-03-07", "HORA": "19:00", "DIA_SEMANA": "SÁB", "MES_LABEL": "03/2026"}, {"REDS": "2026-011237862-001", "DATA_HORA": "2026-03-10 17:36:22", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA GUAICURUS, 0 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "PRAÇA SETE", "DATA": "2026-03-10", "HORA": "17:36", "DIA_SEMANA": "TER", "MES_LABEL": "03/2026"}, {"REDS": "2026-011874436-001", "DATA_HORA": "2026-03-13 02:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "PRACA RIO BRANCO, 100 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "2026-011907531-001", "ENDERECO_LOCALIZACAO": "RUA GUAICURUS, 393 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "SIM", "MOTIVO": "REGISTRO DE FURTO DUPLICADO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "RODOVIÁRIA", "DATA": "2026-03-13", "HORA": "02:00", "DIA_SEMANA": "SEX", "MES_LABEL": "03/2026"}, {"REDS": "2026-012148168-001", "DATA_HORA": "2026-03-13 19:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "PRACA RIO BRANCO, 100 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-012512473-001", "ENDERECO_LOCALIZACAO": "RUA GUARANI, 120 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "210m", "OBSERVACOES": "EM QUE PESO O SOLICITANTE NÃO TENHA ADMITIDO QUE REGISTROU O BO ERRONEAMENTE, TUDO LEVA A CRER QUE O MESMO APENAS SE ESQUECEU DO LOCAL EM QUE HAVIA ESTACIONADO O VEÍCULO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE REGISTROU FURTO DE SEU VEÍCULO, INFORMANDO QUE DEIXOU ELE EM UM BAR NA PRAÇA RIO BRANCO NO DIA 13/03/2026 E QUE AO RETORNAR NÃO LOCALIZOU SEU VEÍCULO.\n\nVEÍCULO FOI LOCALIZADO A APROXIMADAMENTE 230 M DO SUPOSTO LOCAL DO FURTO.\n\nVALE RESSALTAR QUE O SOLICITANTE INFORMOU QUE DEIXOU O VEÍCULO PERTO DO BAR NA PRAÇA RIO BRANCO Nº 100, ONDE NÃO HÁ BARES NESSE LOCAL, E O VEÍCULO FOI LOCALIZADO NA RUA GUARINIS Nº 120, PRÓXIMO A UM BAR, APROXIMADAMENTE 230 M DA PRAÇA RIO BRANCO. O VEÍCULO ESTAVA ESTACIONADO, SEM INDÍCIOS DE ARROMBAMENTO OU QUALQUER TIPO DE ALTERAÇÃO.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "RODOVIÁRIA", "DATA": "2026-03-13", "HORA": "19:30", "DIA_SEMANA": "SEX", "MES_LABEL": "03/2026"}, {"REDS": "2026-014162965-001", "DATA_HORA": "2026-03-22 14:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "AVENIDA AMAZONAS, 914 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "MERCADO CENTRAL", "DATA": "2026-03-22", "HORA": "14:00", "DIA_SEMANA": "DOM", "MES_LABEL": "03/2026"}, {"REDS": "2026-013393491-001", "DATA_HORA": "2026-03-22 19:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA CURITIBA, 800 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "PRAÇA SETE", "DATA": "2026-03-22", "HORA": "19:00", "DIA_SEMANA": "DOM", "MES_LABEL": "03/2026"}, {"REDS": "2026-013997732-001", "DATA_HORA": "2026-03-26 20:57:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA CARIJOS, 35 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "PRAÇA SETE", "DATA": "2026-03-26", "HORA": "20:57", "DIA_SEMANA": "QUI", "MES_LABEL": "03/2026"}, {"REDS": "2026-014349811-001", "DATA_HORA": "2026-03-29 00:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA GUAICURUS, 343 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-021930456-001", "ENDERECO_LOCALIZACAO": "RUA GUAICURUS, 343 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "SOLICITANTE SOLICITOU ERRONEAMENTE  O REGISTRO DE FURTO DE VEÍCULO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE QUERIA REGISTRAR FURTO DE SEUS PERTENCES DENTRO D VEÍCULO, POREM AO FAZER ISSO NA DELEGACIA VIRTUAL, MARCOU UM CAMPO ONDE INFORMOU QUE SEU VEÍCULO FOI FURTADO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "RODOVIÁRIA", "DATA": "2026-03-29", "HORA": "00:30", "DIA_SEMANA": "DOM", "MES_LABEL": "03/2026"}, {"REDS": "2026-014480520-001", "DATA_HORA": "2026-03-30 08:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA GUARANI, 341 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "MERCADO CENTRAL", "DATA": "2026-03-30", "HORA": "08:00", "DIA_SEMANA": "SEG", "MES_LABEL": "03/2026"}, {"REDS": "2026-014842551-001", "DATA_HORA": "2026-03-31 22:19:43", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA GOITACAZES, 461 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-015964057-001", "ENDERECO_LOCALIZACAO": "RUA TUPIS, 787 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MARÇO", "NUMERO_MES": 3, "SETOR": "MERCADO CENTRAL", "DATA": "2026-03-31", "HORA": "22:19", "DIA_SEMANA": "TER", "MES_LABEL": "03/2026"}, {"REDS": "2026-015871732-001", "DATA_HORA": "2026-04-07 18:07:39", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA TUPIS, 0 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-015944121-001", "ENDERECO_LOCALIZACAO": "AVENIDA ASSIS CHATEAUBRIAND, 998 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "MERCADO CENTRAL", "DATA": "2026-04-07", "HORA": "18:07", "DIA_SEMANA": "TER", "MES_LABEL": "04/2026"}, {"REDS": "2026-017450329-001", "DATA_HORA": "2026-04-16 19:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA ESPIRITO SANTO, 220 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "RODOVIÁRIA", "DATA": "2026-04-16", "HORA": "19:00", "DIA_SEMANA": "QUI", "MES_LABEL": "04/2026"}, {"REDS": "2026-017538465-001", "DATA_HORA": "2026-04-16 19:51:40", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA TUPIS, 431 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-018308604-001", "ENDERECO_LOCALIZACAO": "RUA GOITACAZES, 0 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "550m", "OBSERVACOES": "SOLICITANTE SE  ESQUECEU DE ONDE HAVIA ESTACIONADO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE  REGISTROU UM BOLETIM DE OCORRÊNCIA RELATANDO A RECUPERAÇÃO DO VEÍCULO, INFORMANDO QUE HAVIA SE ESQUECIDO O LOCAL EM QUE ESTACIONOU O VEÍCULO, GERANDO ERRONEAMENTE UMA OCORRÊNCIA DE FURTO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "MERCADO CENTRAL", "DATA": "2026-04-16", "HORA": "19:51", "DIA_SEMANA": "QUI", "MES_LABEL": "04/2026"}, {"REDS": "2026-018264630-001", "DATA_HORA": "2026-04-20 19:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA TUPINAMBAS, 237 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-018322599-001", "ENDERECO_LOCALIZACAO": "RUA JANUARIA, 206 - COLEGIO BATISTA - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "PRAÇA SETE", "DATA": "2026-04-20", "HORA": "19:00", "DIA_SEMANA": "SEG", "MES_LABEL": "04/2026"}, {"REDS": "2026-018125468-001", "DATA_HORA": "2026-04-20 20:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA GUAICURUS, 50 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-019693770-001", "ENDERECO_LOCALIZACAO": "AVENIDA ASSIS CHATEAUBRIAND / RUA BAHIA - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "700m", "OBSERVACOES": "SOLICITANTE SE  ESQUECEU DE ONDE HAVIA ESTACIONADO", "CABE_AUDITORIA": "SIM", "MOTIVO": "SOLICITANTE  REGISTROU UM BOLETIM DE OCORRÊNCIA RELATANDO A RECUPERAÇÃO DO VEÍCULO, INFORMANDO QUE HAVIA SE ESQUECIDO O LOCAL EM QUE ESTACIONOU O VEÍCULO, GERANDO ERRONEAMENTE UMA OCORRÊNCIA DE FURTO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "PRAÇA SETE", "DATA": "2026-04-20", "HORA": "20:00", "DIA_SEMANA": "SEG", "MES_LABEL": "04/2026"}, {"REDS": "2026-019390150-001", "DATA_HORA": "2026-04-28 20:30:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA TUPIS, 406 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-019608930-001", "ENDERECO_LOCALIZACAO": "RUA GOITACAZES, 578 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "300m", "OBSERVACOES": "APARENTEMENTE O SOLICITANTE SE CONFUNDIU QUANTO AO LOCAL   QUE ESTACIONOU O CARRO", "CABE_AUDITORIA": "SIM", "MOTIVO": "O VEICULO FOI LOCALIZADO SEM SINAL DE ARROMBAMENTO OU AVARIAS A POUCOS METROS DO LOCAL DO SUPOSTO FURTO, VERIFICADO COM COMERCIANTES NO LOCAL, OS MESMO INFORMARAM QUE O VEÍCULO FICOU PARADO LA DESDE O DIA DO SUPOSTO FURTO.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "ABRIL", "NUMERO_MES": 4, "SETOR": "MERCADO CENTRAL", "DATA": "2026-04-28", "HORA": "20:30", "DIA_SEMANA": "TER", "MES_LABEL": "04/2026"}, {"REDS": "2026-020257720-001", "DATA_HORA": "2026-05-04 14:44:09", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "AVENIDA PARANA, 12 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO DE FURTO DUPLICADO ( PORÉM JA CORRIGIDO )", "CABE_AUDITORIA": "SIM", "MOTIVO": "APARENTEMENTE JA FOI REALIZADO A CORREÇÃO DO BO DUPLICADO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-04", "HORA": "14:44", "DIA_SEMANA": "SEG", "MES_LABEL": "05/2026"}, {"REDS": "2026-021178321-001", "DATA_HORA": "2026-05-08 20:00:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA TUPINAMBAS, 352 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-022245667-001", "ENDERECO_LOCALIZACAO": "RUA TAMOIOS, 486 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "500m", "OBSERVACOES": "ANALISANDO O BO DE FURTO , APARENTEMENTE TRATA-SE DE UM EQUÍVOCO  QUANTO AO LOCAL DO ESTACIONAMENTO", "CABE_AUDITORIA": "SIM", "MOTIVO": "VERIFICADO COM OS COMERCIANTES, E OS MESMO CONFIRMARAM QUE O VEÍCULO ESTAVA PARADO LÁ A APROXIMADAMENTE 4 DIAS, TEMPO QUE BATE COM  A DATA DO REGISTRO, O VEÍCULO ESTAVA SEM NENHUM TIPO DE AVARIA  QUE PUDESSE INDICAR UM FURTO OU ARROMBAMENTO DO MESMO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "PRAÇA SETE", "DATA": "2026-05-08", "HORA": "20:00", "DIA_SEMANA": "SEX", "MES_LABEL": "05/2026"}, {"REDS": "2026-021980992-001", "DATA_HORA": "2026-05-12 23:59:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA ESPIRITO SANTO, 1040 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-021846922-001", "ENDERECO_LOCALIZACAO": "AVENIDA ANDRADAS, 737 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "O VEÍCULO FOI REMOVIDO", "CABE_AUDITORIA": "SIM", "MOTIVO": "UMA GUARNIÇÃO SE DEPAROU COM VEÍCULO COM AS PORTAS ABERTAS E FIAÇÕES EXPOSTAS, ISSO ÁS 10:00AM , COMO NÃO HAVIA CONDUTOR E ESTAVA COM DOCUMENTAÇÃO ATRASADA, O MESMO FOI REMOVIDO.  E ÁS  22:40 O PROPRIETÁRIO  SEM SABER REGISTROU O BO DE FURTO.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-12", "HORA": "23:59", "DIA_SEMANA": "TER", "MES_LABEL": "05/2026"}, {"REDS": "2026-022242663-001", "DATA_HORA": "2026-05-15 10:44:20", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA SAO PAULO, 957 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-15", "HORA": "10:44", "DIA_SEMANA": "SEX", "MES_LABEL": "05/2026"}, {"REDS": "2026-022416549-001", "DATA_HORA": "2026-05-16 10:32:36", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA CARIJOS, 121 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "PRAÇA SETE", "DATA": "2026-05-16", "HORA": "10:32", "DIA_SEMANA": "SÁB", "MES_LABEL": "05/2026"}, {"REDS": "2026-022714012-001", "DATA_HORA": "2026-05-18 12:02:19", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "AVENIDA AFONSO PENA, 981 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "-", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "-", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-18", "HORA": "12:02", "DIA_SEMANA": "SEG", "MES_LABEL": "05/2026"}, {"REDS": "2026-023001921-001", "DATA_HORA": "2026-05-19 22:57:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA GOITACAZES, 52 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-023438170-001", "ENDERECO_LOCALIZACAO": "-", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "O CHASSI DA MOTOCICLETA FOI ENCONTRADO EM UM CORREGO NO RIO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-19", "HORA": "22:57", "DIA_SEMANA": "TER", "MES_LABEL": "05/2026"}, {"REDS": "2026-022991385-001", "DATA_HORA": "2026-05-19 21:41:00", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA RIO DE JANEIRO, 234 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-023041886-001", "ENDERECO_LOCALIZACAO": "RUA SAO PAULO, 279 - CENTRO - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO E APARENTEMENTE HOUVE ALGUM ENGANO QUANTO AO LOCAL DE ESTACIONAMENTO DO VEÍCULO", "CABE_AUDITORIA": "SIM", "MOTIVO": "EM QUE PESE O REGISTRO ESTAJA COMO ENDEREÇO DO FATO NA RUA SÃO PAULO. NO HISTÓRICO DO REGISTRO A VÍTIMA INFORMA QUE DEIXOU SEU VEÍCULO ESTACIONADO NA RUA RIO DE JANEIRO PROXIMO AO NÚMERO 234 . POREM O CARRO FOI LOCALIZADO NO DIA SEGUINTE DE MANHA DO OUTRO LADO DO QUARTEIRÃO A 190m DO LOCAL, O CARRO ESTAVA EM TÁCTO E SEM NENHUM SINAL DE ARROMBAMENTO.", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 5, "SETOR": "RODOVIÁRIA", "DATA": "2026-05-19", "HORA": "21:41", "DIA_SEMANA": "TER", "MES_LABEL": "05/2026"}, {"REDS": "2026-024621012-001", "DATA_HORA": "2026-05-29 22:16:58", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "CARRO", "ENDERECO_FURTO": "RUA BAHIA / RUA GOITACAZES - CENTRO - BELO HORIZONTE", "LOCALIZADO": "SIM", "BO_LOCALIZACAO": "2026-024886891-001", "ENDERECO_LOCALIZACAO": "RUA PADRE MARINHO, 517 - SANTA EFIGENIA - BELO HORIZONTE", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 29, "SETOR": "MERCADO CENTRAL", "DATA": "2026-05-29", "HORA": "22:16", "DIA_SEMANA": "SEX", "MES_LABEL": "05/2026"}, {"REDS": "2026-024797960-001", "DATA_HORA": "2026-05-30 20:27:32", "NATUREZA": "C01155 - FURTO", "TIPO_VEICULO": "MOTOCICLETA", "ENDERECO_FURTO": "RUA CURITIBA, 76 - CENTRO - BELO HORIZONTE", "LOCALIZADO": "NÃO", "BO_LOCALIZACAO": "", "ENDERECO_LOCALIZACAO": "", "DISTANCIA_LOCALIZACAO": "SEM RELEVÂNCIA", "OBSERVACOES": "BO ANALISADO, VEÍCULO FURTADO DE FATO", "CABE_AUDITORIA": "NÃO", "MOTIVO": "FOI FEITO CONTATO TELEFONICO COM O SENHOR LUCAS TEIXEIRA DOS SANTOS PELO REDS REMOTO , ESTE INFORMOU QUE DEIXOU SEU VEICULOD DE PLACA OQL-3256 ESTACIONADO NO LOCAL DO FATO POR VOLTA DE 10 HORAS E 30 MINUTOS, RETORNANDO 40 MINUTOS APOS E NAO ENCONTROU SUA MOTOCICETA NO LOCAL. O SENHOR LUCAS QUESTIONOU UM GUARDA MUNICIPAL QUE ESTAVA NAS PROXIMIDADES SE ELE TERIA REMOVIDO SUA MOTOCICLETA, ESTE O INFORMOU QUE SE ALGUMA PROVIDENCIA TERIA SIDO FEITA SERIA APENAS A AUTUAÇÃO POR VEICULO ESTACIONADO EM LOCAL PROIBIDO", "DATA_SOLICITACAO": "", "RESPOSTA": "", "MÊS": "MAIO", "NUMERO_MES": 30, "SETOR": "RODOVIÁRIA", "DATA": "2026-05-30", "HORA": "20:27", "DIA_SEMANA": "SÁB", "MES_LABEL": "05/2026"}];
+    window.SECTORES_GEOJSON = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"SETOR": "MERCADO CENTRAL"}, "geometry": {"type": "Polygon", "coordinates": [[[-43.9440572, -19.9191456], [-43.9448833, -19.9220406], [-43.9448206, -19.922059], [-43.9447079, -19.9221094], [-43.9446473, -19.9221213], [-43.9445792, -19.922175], [-43.9445202, -19.9222355], [-43.9444649, -19.9222827], [-43.944429, -19.9223313], [-43.9443684, -19.9224138], [-43.9443646, -19.9224675], [-43.944311, -19.9225431], [-43.944304, -19.9226458], [-43.9442788, -19.9227499], [-43.944304, -19.9229686], [-43.9372969, -19.9246336], [-43.9371709, -19.9242024], [-43.9370419, -19.9237198], [-43.9366446, -19.9223597], [-43.9366395, -19.9223029], [-43.9365125, -19.921803], [-43.9363663, -19.9212167], [-43.9363034, -19.9210288], [-43.936366, -19.9210136], [-43.9440572, -19.9191456]]]}}, {"type": "Feature", "properties": {"SETOR": "PRAÇA SETE"}, "geometry": {"type": "Polygon", "coordinates": [[[-43.9467448, -19.9170753], [-43.9450926, -19.9174788], [-43.9454037, -19.9187699], [-43.9404253, -19.9199667], [-43.9400471, -19.920055], [-43.9363946, -19.9209557], [-43.9362761, -19.920884], [-43.9360937, -19.9208512], [-43.9359617, -19.9207753], [-43.9350075, -19.9202325], [-43.9341275, -19.9197415], [-43.9331406, -19.9191633], [-43.9314991, -19.9134439], [-43.9331511, -19.9144541], [-43.9337251, -19.914681], [-43.9342294, -19.9146054], [-43.9342884, -19.9145953], [-43.9344708, -19.9146457], [-43.934625, -19.9145965], [-43.9346773, -19.9148304], [-43.9347216, -19.9150832], [-43.9350871, -19.9161902], [-43.9353669, -19.9172266], [-43.9354525, -19.9172432], [-43.9438639, -19.9152157], [-43.9441965, -19.9151753], [-43.9447115, -19.9147062], [-43.9467448, -19.9170753]]]}}, {"type": "Feature", "properties": {"SETOR": "RODOVIÁRIA"}, "geometry": {"type": "Polygon", "coordinates": [[[-43.9346101, -19.9146199], [-43.9359594, -19.9142846], [-43.936984, -19.9140577], [-43.9371771, -19.9138862], [-43.9387865, -19.9122873], [-43.939162, -19.9121108], [-43.9396716, -19.9120906], [-43.9399076, -19.9120705], [-43.940149, -19.9120856], [-43.940428, -19.9121209], [-43.9408249, -19.9122369], [-43.9414578, -19.9126075], [-43.9433702, -19.9136818], [-43.9442504, -19.9141373], [-43.9447005, -19.9147006], [-43.9441695, -19.9151646], [-43.943853, -19.91521], [-43.9353718, -19.9172981], [-43.9346959, -19.9150335], [-43.9346101, -19.9146199]]]}}]};
+  </script>
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQcVlL6H5AY9abHdnCt8yHoo7Gx55bPOfDDUqOe89m9v-IHFnT1YfVY5zzxJDPUJ1fFj9M4E9ulzyym/pub?gid=1500876164&single=true&output=csv';
+    const GOOGLE_SHEET_ID = '1Cp7hVunIwU4aRJ74BfmQH0CH11w_ujVev7qZPgUJuzg';
+    const GOOGLE_SHEET_GID = '1500876164';
+    const COORD_STORAGE_KEY = 'auditoria6cia_coord_overrides_v1';
+    const DATA_STORAGE_KEY = 'auditoria6cia_dados_google_csv_v1';
+    const LAST_LOAD_STORAGE_KEY = 'auditoria6cia_ultima_carga_v1';
+    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+    const SECTOR_COLORS = { 'PRAÇA SETE':'#1487ff', 'RODOVIÁRIA':'#75dd64', 'MERCADO CENTRAL':'#ff8a1f' };
+    const DIA_ORDER = ['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+    function norm(v) { return String(v ?? '').trim().toUpperCase(); }
+    function isSim(v) { return norm(v).startsWith('SIM'); }
+    function moneyless(n) { return Number(n||0).toLocaleString('pt-BR'); }
+    function pct(a,b) { return b ? ((a/b)*100).toLocaleString('pt-BR', {maximumFractionDigits:1})+'%' : '0%'; }
+    function setorNorm(v) { return norm(v).replace('PRAÇA 7','PRAÇA SETE').replace('PRACA 7','PRAÇA SETE'); }
+    function useFiltered(data, filters) {
+      return useMemo(() => data.filter(r => {
+        const setor = setorNorm(r.SETOR);
+        if(filters.setor !== 'Todos' && setor !== filters.setor) return false;
+        if(filters.tipo !== 'Todos' && norm(r.TIPO_VEICULO) !== filters.tipo) return false;
+        if(filters.localizado !== 'Todos' && (isSim(r.LOCALIZADO) ? 'SIM':'NÃO') !== filters.localizado) return false;
+        if(filters.auditoria !== 'Todos' && (isSim(r.CABE_AUDITORIA) ? 'SIM':'NÃO') !== filters.auditoria) return false;
+        if(filters.mes !== 'Todos' && String(r.MES_LABEL||r.MÊS||r.MES) !== filters.mes) return false;
+        return true;
+      }), [data, filters]);
+    }
+    function groupBy(rows, keyFn) {
+      const m = new Map();
+      rows.forEach(r => { const k = keyFn(r)||'Não informado'; m.set(k, (m.get(k)||0)+1); });
+      return [...m.entries()].map(([name,value])=>({name,value}));
+    }
+    function metrics(rows) {
+      const total = rows.length;
+      const rec = rows.filter(r=>isSim(r.LOCALIZADO)).length;
+      const aud = rows.filter(r=>isSim(r.CABE_AUDITORIA)).length;
+      const nao = total-rec;
+      return {total, rec, nao, aud, tx: total? rec/total:0};
+    }
+    function metricsBySector(rows) {
+      return ['PRAÇA SETE','RODOVIÁRIA','MERCADO CENTRAL'].map(setor => {
+        const srows = rows.filter(r=>setorNorm(r.SETOR)===setor);
+        const m=metrics(srows); const ivso=(m.total*2)+(m.aud*3)+(m.nao*4)-m.rec;
+        return {setor, ...m, ivso};
+      });
+    }
+    function KPI({title, value, sub, color, icon, onClick, active}) {
+      return <button onClick={onClick} className={`text-left rounded-xl p-4 bg-slate-900/70 border ${active?'border-cyan-300':'border-slate-700'} card-glow hover:scale-[1.01] transition w-full`}>
+        <div className="flex items-center gap-4"><div className="text-4xl" style={{color}}>{icon}</div><div><div className="text-xs uppercase tracking-widest text-slate-300">{title}</div><div className="text-3xl font-black" style={{color}}>{value}</div>{sub&&<div className="text-xs text-slate-400">{sub}</div>}</div></div>
+      </button>
+    }
+    function BarChart({title, data, color='#1487ff', onClick, selected}) {
+      const max = Math.max(1, ...data.map(d=>d.value));
+      return <div className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow h-full"><h3 className="font-bold text-cyan-100 mb-4">{title}</h3><div className="space-y-3">{data.map(d => <div key={d.name} onClick={()=>onClick&&onClick(d.name)} className="cursor-pointer group"><div className="flex justify-between text-sm mb-1"><span className={selected===d.name?'text-cyan-300':'text-slate-200'}>{d.name}</span><b>{d.value}</b></div><div className="h-6 bg-slate-800 rounded-full overflow-hidden border border-slate-700"><div className="h-full rounded-full group-hover:brightness-125 transition" style={{width:`${(d.value/max)*100}%`, background: SECTOR_COLORS[d.name] || color}}></div></div></div>)}</div></div>
+    }
+    function LineChart({rows}) {
+      const data = groupBy(rows, r=>r.MES_LABEL || r.MÊS || r.MES).sort((a,b)=>a.name.localeCompare(b.name));
+      const w=520,h=210,p=34; const max=Math.max(1,...data.map(d=>d.value));
+      const pts=data.map((d,i)=>[p+(i*(w-2*p)/(Math.max(1,data.length-1))), h-p-(d.value/max)*(h-2*p)]);
+      const path=pts.map((pt,i)=>(i?'L':'M')+pt[0]+','+pt[1]).join(' ');
+      return <div className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow h-full"><h3 className="font-bold text-cyan-100 mb-3">Evolução dos furtos</h3><svg viewBox={`0 0 ${w} ${h}`} className="w-full h-56"><g stroke="#24405f">{[0,1,2,3].map(i=><line key={i} x1={p} x2={w-p} y1={p+i*(h-2*p)/3} y2={p+i*(h-2*p)/3}/>)}</g><path d={path} fill="none" stroke="#29a3ff" strokeWidth="4"/>{pts.map((pt,i)=><circle key={i} cx={pt[0]} cy={pt[1]} r="5" fill="#55c7ff"/> )}{data.map((d,i)=><text key={d.name} x={pts[i]?.[0]||0} y={h-8} textAnchor="middle" fill="#cbd5e1" fontSize="12">{d.name}</text>)}</svg></div>
+    }
+    function escapeCsv(v) {
+      const text = String(v ?? '').replaceAll('"','""');
+      return /[";\n\r]/.test(text) ? `"${text}"` : text;
+    }
+    function downloadCsv(filename, rows) {
+      const cols = ['REDS','DATA','HORA','SETOR','TIPO_VEICULO','LOCALIZADO','CABE_AUDITORIA','MOTIVO','ENDERECO_FURTO','BO_LOCALIZACAO','ENDERECO_LOCALIZACAO','OBSERVACOES'];
+      const csv = '\ufeff' + [cols.join(';'), ...rows.map(r=>cols.map(c=>escapeCsv(r[c])).join(';'))].join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function ExportButtons({rows}) {
+      const types = Array.from(new Set(rows.map(r=>norm(r.TIPO_VEICULO)).filter(Boolean))).sort();
+      return <div className="rounded-xl bg-slate-950/70 border border-slate-700 p-3 space-y-2">
+        <div className="font-bold text-cyan-100 text-sm">Exportar planilhas</div>
+        <button onClick={()=>downloadCsv('furtos_filtrados.csv', rows)} className="w-full bg-cyan-900/60 border border-cyan-600 text-cyan-100 rounded-lg p-2 text-xs hover:bg-cyan-800">Base filtrada</button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={()=>downloadCsv('recuperados.csv', rows.filter(r=>isSim(r.LOCALIZADO)))} className="border border-emerald-600 text-emerald-200 rounded-lg p-2 text-xs hover:bg-emerald-950">Recuperados</button>
+          <button onClick={()=>downloadCsv('nao_recuperados.csv', rows.filter(r=>!isSim(r.LOCALIZADO)))} className="border border-red-600 text-red-200 rounded-lg p-2 text-xs hover:bg-red-950">Não localizados</button>
+          <button onClick={()=>downloadCsv('cabe_auditoria.csv', rows.filter(r=>isSim(r.CABE_AUDITORIA)))} className="border border-amber-500 text-amber-200 rounded-lg p-2 text-xs hover:bg-amber-950">Cabe auditoria</button>
+          <button onClick={()=>downloadCsv('confirmados_sem_auditoria.csv', rows.filter(r=>!isSim(r.CABE_AUDITORIA)))} className="border border-slate-500 text-slate-200 rounded-lg p-2 text-xs hover:bg-slate-800">Confirmados</button>
         </div>
-    </header>
-    
-    <nav>
-        <a href="#" id="tab-cadastro" class="active">Cadastro</a>
-        <a href="#" id="tab-catalogo">Catálogo</a>
-    </nav>
-    
-    <main>
-        <!-- Seção de Cadastro -->
-        <div id="secao-cadastro" class="tab-content active">
-            <div class="card">
-                <h2>Cadastro de Abordado</h2>
-                <form id="form-abordado">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="local_fato">Local do Fato:</label>
-                            <input type="text" id="local_fato" name="local_fato" value="AFONSO PENA 412" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="tipo_envolvido">Tipo de Envolvido:</label>
-                            <select id="tipo_envolvido" name="tipo_envolvido" required>
-                                <option value="">Selecione...</option>
-                                <option value="trafico">Tráfico</option>
-                                <option value="roubo">Roubo</option>
-                                <option value="furto">Furto</option>
-                                <option value="arrombamento">Arrombamento</option>
-                                <option value="outros">Outros</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nome">Nome:</label>
-                            <input type="text" id="nome" name="nome" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nome_mae">Nome da Mãe:</label>
-                            <input type="text" id="nome_mae" name="nome_mae" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cpf">CPF:</label>
-                            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="rg">RG:</label>
-                            <input type="text" id="rg" name="rg">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="endereco">Endereço:</label>
-                            <input type="text" id="endereco" name="endereco" placeholder="Rua xxx, número xx, bairro xxx, cidade">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="profissao">Profissão:</label>
-                            <input type="text" id="profissao" name="profissao">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="estado_civil">Estado Civil:</label>
-                            <select id="estado_civil" name="estado_civil">
-                                <option value="">Selecione...</option>
-                                <option value="solteiro">Solteiro(a)</option>
-                                <option value="casado">Casado(a)</option>
-                                <option value="divorciado">Divorciado(a)</option>
-                                <option value="viuvo">Viúvo(a)</option>
-                                <option value="uniao_estavel">União Estável</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="escolaridade">Escolaridade:</label>
-                            <select id="escolaridade" name="escolaridade">
-                                <option value="">Selecione...</option>
-                                <option value="fundamental_incompleto">Fundamental Incompleto</option>
-                                <option value="fundamental_completo">Fundamental Completo</option>
-                                <option value="medio_incompleto">Médio Incompleto</option>
-                                <option value="medio_completo">Médio Completo</option>
-                                <option value="superior_incompleto">Superior Incompleto</option>
-                                <option value="superior_completo">Superior Completo</option>
-                                <option value="pos_graduacao">Pós-graduação</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cutis">Cútis:</label>
-                            <select id="cutis" name="cutis">
-                                <option value="">Selecione...</option>
-                                <option value="branca">Branca</option>
-                                <option value="preta">Preta</option>
-                                <option value="parda">Parda</option>
-                                <option value="amarela">Amarela</option>
-                                <option value="indigena">Indígena</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefone">Telefone:</label>
-                            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input type="email" id="email" name="email">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="foto">Foto:</label>
-                            <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="observacoes">Observações:</label>
-                        <textarea id="observacoes" name="observacoes" placeholder="Informações adicionais sobre a abordagem..."></textarea>
-                    </div>
-                    
-                    <button type="submit" id="btn-salvar">Salvar Registro</button>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Seção de Catálogo -->
-        <div id="secao-catalogo" class="tab-content">
-            <div class="card">
-                <h2>Catálogo de Abordados</h2>
-                <div style="margin-bottom: 1rem;">
-                    <button id="btn-sincronizar" class="secundario">Sincronizar</button>
-                    <button id="btn-gerar-pdf" class="secundario">Gerar PDF</button>
-                    <button id="btn-expandir-todos" class="secundario">Expandir Todos</button>
-                    <button id="btn-recolher-todos" class="secundario">Recolher Todos</button>
-                </div>
-                <div id="catalogo-container">
-                    <!-- Conteúdo será gerado dinamicamente -->
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Modal de Exclusão -->
-    <div id="modal-excluir" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmar Exclusão</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir este registro?</p>
-            </div>
-            <div class="modal-footer">
-                <button id="btn-cancelar-exclusao" class="secundario">Cancelar</button>
-                <button id="btn-confirmar-exclusao" class="perigo">Excluir</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Edição de Foto -->
-    <div id="modal-editar-foto" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Editar Foto</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="file" id="nova-foto" accept="image/*" capture="environment">
-            </div>
-            <div class="modal-footer">
-                <button id="btn-cancelar-edicao-foto" class="secundario">Cancelar</button>
-                <button id="btn-salvar-foto">Salvar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Edição de Dados -->
-    <div id="modal-editar-dados" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Editar Dados</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="form-edicao">
-                    <!-- Campos serão preenchidos dinamicamente -->
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button id="btn-cancelar-edicao-dados" class="secundario">Cancelar</button>
-                <button id="btn-salvar-dados">Salvar</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Variáveis globais
-        let abordados = JSON.parse(localStorage.getItem("abordados")) || [];
-        let abordadoParaExcluir = null;
-        let abordadoParaEditarFoto = null;
-        let abordadoParaEditarDados = null;
-        let isOnline = navigator.onLine;
-        
-        // Elementos DOM
-        const tabCadastro = document.getElementById("tab-cadastro");
-        const tabCatalogo = document.getElementById("tab-catalogo");
-        const secaoCadastro = document.getElementById("secao-cadastro");
-        const secaoCatalogo = document.getElementById("secao-catalogo");
-        const formAbordado = document.getElementById("form-abordado");
-        const catalogoContainer = document.getElementById("catalogo-container");
-        const modalExcluir = document.getElementById("modal-excluir");
-        const modalEditarFoto = document.getElementById("modal-editar-foto");
-        const modalEditarDados = document.getElementById("modal-editar-dados");
-        const statusIndicator = document.getElementById("status-indicator");
-        const statusText = document.getElementById("status-text");
-        
-        // Função para atualizar status de conexão
-        function atualizarStatusConexao() {
-            if (isOnline) {
-                statusIndicator.className = "status-indicator status-online";
-                statusText.textContent = "Online - Dados sincronizados";
-            } else {
-                statusIndicator.className = "status-indicator status-offline";
-                statusText.textContent = "Offline - Dados salvos localmente";
-            }
+        {types.length>0 && <div className="pt-2 border-t border-slate-800">
+          <div className="text-xs uppercase text-slate-400 mb-1">Por tipo</div>
+          <div className="flex flex-wrap gap-2">{types.map(t=><button key={t} onClick={()=>downloadCsv(`tipo_${t.toLowerCase().replaceAll(' ','_')}.csv`, rows.filter(r=>norm(r.TIPO_VEICULO)===t))} className="border border-blue-600 text-blue-200 rounded-lg px-2 py-1 text-xs hover:bg-blue-950">{t}</button>)}</div>
+        </div>}
+      </div>
+    }
+    const ADDRESS_COORDS = [
+      ['RUA TUPINAMBAS, 346', -19.91770, -43.93950], ['RUA TUPINAMBAS, 352', -19.91775, -43.93952], ['RUA TUPINAMBAS, 237', -19.91685, -43.93920],
+      ['AVENIDA OIAPOQUE, 264', -19.91465, -43.94075], ['AVENIDA OIAPOQUE, 220', -19.91455, -43.94055],
+      ['AVENIDA ANDRADAS, 471', -19.91905, -43.93605], ['AVENIDA SANTOS DUMONT, 525', -19.91640, -43.93835],
+      ['AVENIDA AFONSO PENA / RUA ESPIRITO SANTO', -19.91965, -43.93765], ['AVENIDA AFONSO PENA, 981', -19.92115, -43.93875],
+      ['RUA BAHIA, 166', -19.91570, -43.94055], ['RUA BAHIA / RUA GOITACAZES', -19.91985, -43.94210],
+      ['RUA GUAICURUS, 643', -19.91610, -43.93900], ['RUA GUAICURUS, 343', -19.91515, -43.94025], ['RUA GUAICURUS, 50', -19.91420, -43.94115], ['RUA GUAICURUS, 0', -19.91405, -43.94125],
+      ['RUA CURITIBA, 823', -19.91930, -43.94230], ['RUA CURITIBA, 800', -19.91918, -43.94205], ['RUA CURITIBA, 149', -19.91485, -43.93910], ['RUA CURITIBA, 76', -19.91470, -43.93885],
+      ['AVENIDA OLEGARIO MACIEL, 169', -19.91735, -43.94365], ['AVENIDA AMAZONAS, 914', -19.92075, -43.93925], ['AVENIDA PARANA, 12', -19.91620, -43.93785],
+      ['RUA TUPIS, 185', -19.91835, -43.94105], ['RUA TUPIS, 431', -19.91955, -43.94235], ['RUA TUPIS, 406', -19.91945, -43.94220], ['RUA TUPIS, 0', -19.91690, -43.94005],
+      ['RUA RIO DE JANEIRO, 1040', -19.91925, -43.94385], ['RUA RIO DE JANEIRO / RUA TUPIS', -19.91865, -43.94160], ['RUA RIO DE JANEIRO, 234', -19.91625, -43.94050],
+      ['RUA ESPIRITO SANTO, 437', -19.91875, -43.93685], ['RUA ESPIRITO SANTO, 220', -19.91765, -43.93495], ['RUA ESPIRITO SANTO, 1040', -19.92020, -43.94300],
+      ['RUA AARAO REIS, 570', -19.91465, -43.93655], ['PRACA RIO BRANCO, 100', -19.91325, -43.94065],
+      ['RUA CARIJOS, 35', -19.91665, -43.93605], ['RUA CARIJOS, 121', -19.91695, -43.93635],
+      ['RUA GUARANI, 341', -19.91825, -43.94055], ['RUA GOITACAZES, 461', -19.91965, -43.94180], ['RUA GOITACAZES, 52', -19.91675, -43.93665],
+      ['RUA SAO PAULO, 957', -19.91935, -43.94360]
+    ];
+    function normAddr(s){ return norm(String(s||'')).replace(/AVENIDA/g,'AVENIDA').replace(/PRACA/g,'PRACA').replace(/\s+/g,' ').trim(); }
+    function furtoLatLng(r){
+      const key = String(r.REDS || '').trim();
+      const ov = key && (window.COORD_OVERRIDES || {})[key];
+      if(ov && Number.isFinite(Number(ov.lat)) && Number.isFinite(Number(ov.lng))) return [Number(ov.lat), Number(ov.lng), true, 'ajustado'];
+      const lat = parseFloat(String(r.LATITUDE||r.LAT||'').replace(',','.'));
+      const lng = parseFloat(String(r.LONGITUDE||r.LON||r.LNG||'').replace(',','.'));
+      if(Number.isFinite(lat) && Number.isFinite(lng)) return [lat,lng,true,'planilha'];
+      const a = normAddr(r.ENDERECO_FURTO || r.ENDERECO || '');
+      for(const [key,la,lo] of ADDRESS_COORDS){ if(a.includes(normAddr(key))) return [la,lo,false,'cadastro']; }
+      const fallback = { 'PRAÇA SETE':[-19.9180,-43.9382], 'RODOVIÁRIA':[-19.9148,-43.9401], 'MERCADO CENTRAL':[-19.9201,-43.9419] };
+      const f = fallback[r.SETOR] || [-19.9184,-43.9405]; return [f[0],f[1],false,'setor'];
+    }
+    function SectorMap({rows, selected, setSelected, coordOverrides, setCoordOverrides}) {
+      const ref = useRef(null); const fullRef = useRef(null); const mapRef=useRef(null); const fullMapRef=useRef(null); const layerRef=useRef(null); const fullLayerRef=useRef(null); const wrapperRef = useRef(null);
+      const [editMode,setEditMode] = useState(false);
+      const [geoBusy,setGeoBusy] = useState(false);
+      const [geoMsg,setGeoMsg] = useState('');
+      const [full,setFull] = useState(false);
+      const [showHeat,setShowHeat] = useState(true);
+      const [showPins,setShowPins] = useState(true);
+      const [showAud,setShowAud] = useState(true);
+      const [showNao,setShowNao] = useState(true);
+      const [showRec,setShowRec] = useState(true);
+      const bySector = useMemo(()=>metricsBySector(rows),[rows]);
+      useEffect(()=>{ window.COORD_OVERRIDES = coordOverrides || {}; }, [coordOverrides]);
+      const saveOverrides = (next)=>{ window.COORD_OVERRIDES = next; localStorage.setItem(COORD_STORAGE_KEY, JSON.stringify(next)); setCoordOverrides(next); };
+      const exportCoords = ()=>{
+        const base = rows.map(r=>{ const [lat,lng,,src]=furtoLatLng(r); return {REDS:r.REDS, ENDERECO_FURTO:r.ENDERECO_FURTO, SETOR:r.SETOR, LATITUDE:lat, LONGITUDE:lng, ORIGEM_COORDENADA:src}; });
+        downloadCsv('coordenadas_mapa_furtos.csv', base);
+      };
+      const geocodeVisible = async ()=>{
+        setGeoBusy(true); setGeoMsg('Geocodificando...');
+        const next = {...(coordOverrides||{})}; let ok=0, fail=0;
+        const unique = Array.from(new Map(rows.map(r=>[String(r.REDS||'').trim(), r])).values()).filter(r=>r.REDS && !next[String(r.REDS).trim()]);
+        for(const r of unique){
+          const q = `${r.ENDERECO_FURTO || ''}, Belo Horizonte, Minas Gerais, Brasil`;
+          try{
+            const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q);
+            const res = await fetch(url, {headers:{'Accept':'application/json'}});
+            const arr = await res.json();
+            if(arr && arr[0]){ next[String(r.REDS).trim()] = {lat:Number(arr[0].lat), lng:Number(arr[0].lon), origem:'nominatim'}; ok++; }
+            else fail++;
+          } catch(e){ fail++; }
+          await sleep(1050);
         }
-        
-        // Função para verificar conectividade
-        async function verificarConectividade() {
-            try {
-                const response = await fetch("/.netlify/functions/buscarAbordados", {
-                    method: "GET",
-                    signal: AbortSignal.timeout(5000)
-                });
-                isOnline = response.ok;
-            } catch (error) {
-                isOnline = false;
-            }
-            atualizarStatusConexao();
+        saveOverrides(next); setGeoMsg(`Geocodificação finalizada: ${ok} localizados, ${fail} sem retorno.`); setGeoBusy(false);
+      };
+      useEffect(()=>{ if(!ref.current || mapRef.current) return; mapRef.current = L.map(ref.current, { zoomControl: true, attributionControl:false }).setView([-19.9184, -43.9405], 15); L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapRef.current); },[]);
+      useEffect(()=>{
+        document.body.classList.toggle('map-lock', !!full);
+        return () => { document.body.classList.remove('map-lock'); };
+      },[full]);
+      useEffect(()=>{
+        if(!full) {
+          if(fullLayerRef.current){ try{ fullLayerRef.current.remove(); }catch(e){} fullLayerRef.current=null; }
+          if(fullMapRef.current){ try{ fullMapRef.current.remove(); }catch(e){} fullMapRef.current=null; }
+          return;
         }
-        
-        // Função para mostrar alertas
-        function mostrarAlerta(mensagem, tipo = "success") {
-            const alerta = document.createElement("div");
-            alerta.className = `alert alert-${tipo}`;
-            alerta.textContent = mensagem;
-            
-            const main = document.querySelector("main");
-            main.insertBefore(alerta, main.firstChild);
-            
-            setTimeout(() => {
-                alerta.remove();
-            }, 5000);
-        }
-        
-        // Função para alternar entre abas
-        function alternarAba(aba) {
-            // Remover classe active de todas as abas
-            document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
-            document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
-            
-            // Adicionar classe active na aba selecionada
-            if (aba === "cadastro") {
-                tabCadastro.classList.add("active");
-                secaoCadastro.classList.add("active");
-            } else {
-                tabCatalogo.classList.add("active");
-                secaoCatalogo.classList.add("active");
-                renderizarCatalogo();
-            }
-        }
-        
-        // Função para salvar abordado via Netlify Functions
-        async function salvarAbordadoNetlify(abordado) {
-            if (!isOnline) {
-                console.log("Offline - dados salvos apenas localmente");
-                return { success: false, offline: true };
-            }
-            
-            try {
-                const response = await fetch("/.netlify/functions/salvarAbordado", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(abordado),
-                    signal: AbortSignal.timeout(10000)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    console.log("Dados salvos no banco Neon via Netlify Functions");
-                    // Marcar como sincronizado
-                    abordado.sincronizado = true;
-                    abordado.id_servidor = result.id;
-                } else {
-                    console.error("Erro ao salvar no banco:", result.error);
-                }
-                
-                return result;
-            } catch (error) {
-                console.error("Erro na comunicação com Netlify Functions:", error);
-                isOnline = false;
-                atualizarStatusConexao();
-                return { success: false, error: error.message };
-            }
-        }
-        
-        // Função para buscar abordados do servidor
-        async function buscarAbordadosServidor() {
-            if (!isOnline) return { success: false, offline: true };
-            
-            try {
-                const response = await fetch("/.netlify/functions/buscarAbordados", {
-                    method: "GET",
-                    signal: AbortSignal.timeout(10000)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    return { success: true, data: result.data };
-                } else {
-                    console.error("Erro ao buscar dados:", result.error);
-                    return { success: false, error: result.error };
-                }
-            } catch (error) {
-                console.error("Erro ao buscar dados do servidor:", error);
-                isOnline = false;
-                atualizarStatusConexao();
-                return { success: false, error: error.message };
-            }
-        }
-        
-        // Função para sincronizar dados
-        async function sincronizarDados() {
-            if (!isOnline) {
-                mostrarAlerta("Sem conexão com a internet", "error");
-                return;
-            }
-            
-            const btnSincronizar = document.getElementById("btn-sincronizar");
-            btnSincronizar.disabled = true;
-            btnSincronizar.innerHTML = '<span class="loading"></span>Sincronizando...';
-            
-            try {
-                // Buscar dados do servidor
-                const resultado = await buscarAbordadosServidor();
-                
-                if (resultado.success) {
-                    // Mesclar dados locais com dados do servidor
-                    const dadosServidor = resultado.data.map(item => ({
-                        ...item,
-                        id: item.id.toString(),
-                        id_servidor: item.id,
-                        sincronizado: true
-                    }));
-                    
-                    // Manter dados locais não sincronizados
-                    const dadosLocaisNaoSincronizados = abordados.filter(item => !item.sincronizado);
-                    
-                    // Combinar dados
-                    abordados = [...dadosServidor, ...dadosLocaisNaoSincronizados];
-                    
-                    // Salvar localmente
-                    localStorage.setItem("abordados", JSON.stringify(abordados));
-                    
-                    // Tentar sincronizar dados locais não sincronizados
-                    for (const abordado of dadosLocaisNaoSincronizados) {
-                        await salvarAbordadoNetlify(abordado);
-                    }
-                    
-                    renderizarCatalogo();
-                    mostrarAlerta("Dados sincronizados com sucesso!");
-                } else {
-                    mostrarAlerta("Erro ao sincronizar dados", "error");
-                }
-            } catch (error) {
-                console.error("Erro na sincronização:", error);
-                mostrarAlerta("Erro na sincronização", "error");
-            } finally {
-                btnSincronizar.disabled = false;
-                btnSincronizar.innerHTML = "Sincronizar";
-            }
-        }
-        
-        // Função para processar formulário
-        async function processarFormulario(e) {
-            e.preventDefault();
-            
-            const btnSalvar = document.getElementById("btn-salvar");
-            btnSalvar.disabled = true;
-            btnSalvar.innerHTML = '<span class="loading"></span>Salvando...';
-            
-            const formData = new FormData(formAbordado);
-            const novoAbordado = {
-                id: Date.now().toString(),
-                data_registro: new Date().toISOString(),
-                local_fato: formData.get("local_fato"),
-                tipo_envolvido: formData.get("tipo_envolvido"),
-                nome: formData.get("nome"),
-                nome_mae: formData.get("nome_mae"),
-                cpf: formData.get("cpf"),
-                rg: formData.get("rg"),
-                endereco: formData.get("endereco"),
-                profissao: formData.get("profissao"),
-                estado_civil: formData.get("estado_civil"),
-                escolaridade: formData.get("escolaridade"),
-                cutis: formData.get("cutis"),
-                telefone: formData.get("telefone"),
-                email: formData.get("email"),
-                observacoes: formData.get("observacoes"),
-                foto: null,
-                sincronizado: false
-            };
-            
-            // Processar foto se fornecida
-            const fotoFile = formData.get("foto");
-            if (fotoFile && fotoFile.size > 0) {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    novoAbordado.foto = e.target.result;
-                    
-                    // Salvar localmente primeiro
-                    abordados.push(novoAbordado);
-                    localStorage.setItem("abordados", JSON.stringify(abordados));
-                    
-                    // Tentar salvar no servidor
-                    const resultado = await salvarAbordadoNetlify(novoAbordado);
-                    
-                    if (resultado.success) {
-                        // Atualizar dados locais com informações do servidor
-                        const index = abordados.findIndex(a => a.id === novoAbordado.id);
-                        if (index !== -1) {
-                            abordados[index].sincronizado = true;
-                            abordados[index].id_servidor = resultado.id;
-                            localStorage.setItem("abordados", JSON.stringify(abordados));
-                        }
-                        mostrarAlerta("Registro salvo e sincronizado com sucesso!");
-                    } else if (resultado.offline) {
-                        mostrarAlerta("Registro salvo localmente (sem conexão)", "success");
-                    } else {
-                        mostrarAlerta("Registro salvo localmente (erro na sincronização)", "success");
-                    }
-                    
-                    formAbordado.reset();
-                    btnSalvar.disabled = false;
-                    btnSalvar.innerHTML = "Salvar Registro";
-                };
-                reader.readAsDataURL(fotoFile);
-            } else {
-                // Salvar localmente primeiro
-                abordados.push(novoAbordado);
-                localStorage.setItem("abordados", JSON.stringify(abordados));
-                
-                // Tentar salvar no servidor
-                const resultado = await salvarAbordadoNetlify(novoAbordado);
-                
-                if (resultado.success) {
-                    // Atualizar dados locais com informações do servidor
-                    const index = abordados.findIndex(a => a.id === novoAbordado.id);
-                    if (index !== -1) {
-                        abordados[index].sincronizado = true;
-                        abordados[index].id_servidor = resultado.id;
-                        localStorage.setItem("abordados", JSON.stringify(abordados));
-                    }
-                    mostrarAlerta("Registro salvo e sincronizado com sucesso!");
-                } else if (resultado.offline) {
-                    mostrarAlerta("Registro salvo localmente (sem conexão)", "success");
-                } else {
-                    mostrarAlerta("Registro salvo localmente (erro na sincronização)", "success");
-                }
-                
-                formAbordado.reset();
-                btnSalvar.disabled = false;
-                btnSalvar.innerHTML = "Salvar Registro";
-            }
-        }
-        
-        // Função para renderizar catálogo
-        function renderizarCatalogo() {
-            const tiposEnvolvido = {
-                "trafico": "Tráfico",
-                "roubo": "Roubo", 
-                "furto": "Furto",
-                "arrombamento": "Arrombamento",
-                "outros": "Outros"
-            };
-            
-            const abordadosPorTipo = {};
-            
-            // Agrupar por tipo de envolvido
-            abordados.forEach(abordado => {
-                const tipo = abordado.tipo_envolvido || "outros";
-                if (!abordadosPorTipo[tipo]) {
-                    abordadosPorTipo[tipo] = [];
-                }
-                abordadosPorTipo[tipo].push(abordado);
-            });
-            
-            let html = "";
-            
-            // Renderizar cada seção
-            Object.keys(tiposEnvolvido).forEach(tipo => {
-                const abordadosDoTipo = abordadosPorTipo[tipo] || [];
-                const nomeSecao = tiposEnvolvido[tipo];
-                
-                html += `
-                    <div class="catalogo-section" data-tipo="${tipo}">
-                        <div class="catalogo-section-header" onclick="toggleSecao('${tipo}')">
-                            <h3>${nomeSecao} (${abordadosDoTipo.length})</h3>
-                            <button onclick="event.stopPropagation(); gerarPdfSecao('${tipo}')" class="secundario">PDF Seção</button>
-                        </div>
-                        <div class="catalogo-section-content">
-                `;
-                
-                abordadosDoTipo.forEach(abordado => {
-                    html += criarCardAbordado(abordado);
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            catalogoContainer.innerHTML = html;
-        }
-        
-        // Função para criar card de abordado
-        function criarCardAbordado(abordado) {
-            const dataFormatada = new Date(abordado.data_registro).toLocaleString("pt-BR");
-            const statusSync = abordado.sincronizado ? 
-                '<span style="color: green; font-size: 0.8rem;">✓ Sincronizado</span>' : 
-                '<span style="color: orange; font-size: 0.8rem;">⚠ Não sincronizado</span>';
-            
-            return `
-                <div class="abordado-card">
-                    <h4>
-                        ${abordado.nome}
-                        <div>
-                            ${statusSync}
-                            <button onclick="gerarPdfIndividual('${abordado.id}')" class="secundario">PDF</button>
-                        </div>
-                    </h4>
-                    
-                    ${abordado.foto ? `
-                        <div class="foto-container">
-                            <img src="${abordado.foto}" alt="Foto de ${abordado.nome}">
-                        </div>
-                    ` : `
-                        <div class="foto-container">
-                            <div class="foto-placeholder">Sem foto</div>
-                        </div>
-                    `}
-                    
-                    <div class="abordado-info">
-                        <p><strong>Data:</strong> ${dataFormatada}</p>
-                        <p><strong>Local:</strong> ${abordado.local_fato}</p>
-                        <p><strong>Tipo:</strong> ${abordado.tipo_envolvido}</p>
-                        <p><strong>Nome da Mãe:</strong> ${abordado.nome_mae}</p>
-                        <p><strong>CPF:</strong> ${abordado.cpf || "Não informado"}</p>
-                        <p><strong>RG:</strong> ${abordado.rg || "Não informado"}</p>
-                        <p><strong>Endereço:</strong> ${abordado.endereco || "Não informado"}</p>
-                        <p><strong>Profissão:</strong> ${abordado.profissao || "Não informado"}</p>
-                        <p><strong>Estado Civil:</strong> ${abordado.estado_civil || "Não informado"}</p>
-                        <p><strong>Escolaridade:</strong> ${abordado.escolaridade || "Não informado"}</p>
-                        <p><strong>Cútis:</strong> ${abordado.cutis || "Não informado"}</p>
-                        <p><strong>Telefone:</strong> ${abordado.telefone || "Não informado"}</p>
-                        <p><strong>Email:</strong> ${abordado.email || "Não informado"}</p>
-                    </div>
-                    
-                    ${abordado.observacoes ? `
-                        <div class="abordado-observacoes">
-                            <strong>Observações:</strong>
-                            <p>${abordado.observacoes}</p>
-                        </div>
-                    ` : ""}
-                    
-                    <div class="abordado-actions">
-                        <button onclick="editarFoto('${abordado.id}')" class="secundario">Editar Foto</button>
-                        <button onclick="editarDados('${abordado.id}')" class="secundario">Editar Dados</button>
-                        <button onclick="excluirAbordado('${abordado.id}')" class="perigo">Excluir</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Função para alternar seção
-        function toggleSecao(tipo) {
-            const secao = document.querySelector(`[data-tipo="${tipo}"]`);
-            secao.classList.toggle("expanded");
-        }
-        
-        // Função para expandir todas as seções
-        function expandirTodas() {
-            document.querySelectorAll(".catalogo-section").forEach(secao => {
-                secao.classList.add("expanded");
-            });
-        }
-        
-        // Função para recolher todas as seções
-        function recolherTodas() {
-            document.querySelectorAll(".catalogo-section").forEach(secao => {
-                secao.classList.remove("expanded");
-            });
-        }
-        
-        // Função para excluir abordado
-        function excluirAbordado(id) {
-            abordadoParaExcluir = id;
-            abrirModal(modalExcluir);
-        }
-        
-        // Função para confirmar exclusão
-        async function confirmarExclusao() {
-            if (abordadoParaExcluir) {
-                const abordado = abordados.find(a => a.id === abordadoParaExcluir);
-                
-                // Tentar excluir do servidor se estiver sincronizado
-                if (abordado && abordado.sincronizado && abordado.id_servidor && isOnline) {
-                    try {
-                        const response = await fetch(`/.netlify/functions/excluirAbordado/${abordado.id_servidor}`, {
-                            method: "DELETE"
-                        });
-                        
-                        if (!response.ok) {
-                            console.error("Erro ao excluir do servidor");
-                        }
-                    } catch (error) {
-                        console.error("Erro na comunicação com o servidor:", error);
-                    }
-                }
-                
-                // Excluir localmente
-                abordados = abordados.filter(a => a.id !== abordadoParaExcluir);
-                localStorage.setItem("abordados", JSON.stringify(abordados));
-                renderizarCatalogo();
-                fecharModal(modalExcluir);
-                mostrarAlerta("Registro excluído com sucesso!");
-                abordadoParaExcluir = null;
-            }
-        }
-        
-        // Função para editar foto
-        function editarFoto(id) {
-            abordadoParaEditarFoto = id;
-            abrirModal(modalEditarFoto);
-        }
-        
-        // Função para salvar nova foto
-        function salvarNovaFoto() {
-            const novaFoto = document.getElementById("nova-foto").files[0];
-            
-            if (novaFoto && abordadoParaEditarFoto) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const abordado = abordados.find(a => a.id === abordadoParaEditarFoto);
-                    if (abordado) {
-                        abordado.foto = e.target.result;
-                        abordado.sincronizado = false; // Marcar como não sincronizado
-                        localStorage.setItem("abordados", JSON.stringify(abordados));
-                        renderizarCatalogo();
-                        fecharModal(modalEditarFoto);
-                        mostrarAlerta("Foto atualizada com sucesso!");
-                    }
-                };
-                reader.readAsDataURL(novaFoto);
-            }
-        }
-        
-        // Função para editar dados
-        function editarDados(id) {
-            abordadoParaEditarDados = id;
-            const abordado = abordados.find(a => a.id === id);
-            
-            if (abordado) {
-                const formEdicao = document.getElementById("form-edicao");
-                formEdicao.innerHTML = `
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="edit-local_fato">Local do Fato:</label>
-                            <input type="text" id="edit-local_fato" value="${abordado.local_fato}" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-tipo_envolvido">Tipo de Envolvido:</label>
-                            <select id="edit-tipo_envolvido" required>
-                                <option value="trafico" ${abordado.tipo_envolvido === "trafico" ? "selected" : ""}>Tráfico</option>
-                                <option value="roubo" ${abordado.tipo_envolvido === "roubo" ? "selected" : ""}>Roubo</option>
-                                <option value="furto" ${abordado.tipo_envolvido === "furto" ? "selected" : ""}>Furto</option>
-                                <option value="arrombamento" ${abordado.tipo_envolvido === "arrombamento" ? "selected" : ""}>Arrombamento</option>
-                                <option value="outros" ${abordado.tipo_envolvido === "outros" ? "selected" : ""}>Outros</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-nome">Nome:</label>
-                            <input type="text" id="edit-nome" value="${abordado.nome}" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-nome_mae">Nome da Mãe:</label>
-                            <input type="text" id="edit-nome_mae" value="${abordado.nome_mae}" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-cpf">CPF:</label>
-                            <input type="text" id="edit-cpf" value="${abordado.cpf || ""}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-rg">RG:</label>
-                            <input type="text" id="edit-rg" value="${abordado.rg || ""}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-endereco">Endereço:</label>
-                            <input type="text" id="edit-endereco" value="${abordado.endereco || ""}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-profissao">Profissão:</label>
-                            <input type="text" id="edit-profissao" value="${abordado.profissao || ""}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-estado_civil">Estado Civil:</label>
-                            <select id="edit-estado_civil">
-                                <option value="">Selecione...</option>
-                                <option value="solteiro" ${abordado.estado_civil === "solteiro" ? "selected" : ""}>Solteiro(a)</option>
-                                <option value="casado" ${abordado.estado_civil === "casado" ? "selected" : ""}>Casado(a)</option>
-                                <option value="divorciado" ${abordado.estado_civil === "divorciado" ? "selected" : ""}>Divorciado(a)</option>
-                                <option value="viuvo" ${abordado.estado_civil === "viuvo" ? "selected" : ""}>Viúvo(a)</option>
-                                <option value="uniao_estavel" ${abordado.estado_civil === "uniao_estavel" ? "selected" : ""}>União Estável</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-escolaridade">Escolaridade:</label>
-                            <select id="edit-escolaridade">
-                                <option value="">Selecione...</option>
-                                <option value="fundamental_incompleto" ${abordado.escolaridade === "fundamental_incompleto" ? "selected" : ""}>Fundamental Incompleto</option>
-                                <option value="fundamental_completo" ${abordado.escolaridade === "fundamental_completo" ? "selected" : ""}>Fundamental Completo</option>
-                                <option value="medio_incompleto" ${abordado.escolaridade === "medio_incompleto" ? "selected" : ""}>Médio Incompleto</option>
-                                <option value="medio_completo" ${abordado.escolaridade === "medio_completo" ? "selected" : ""}>Médio Completo</option>
-                                <option value="superior_incompleto" ${abordado.escolaridade === "superior_incompleto" ? "selected" : ""}>Superior Incompleto</option>
-                                <option value="superior_completo" ${abordado.escolaridade === "superior_completo" ? "selected" : ""}>Superior Completo</option>
-                                <option value="pos_graduacao" ${abordado.escolaridade === "pos_graduacao" ? "selected" : ""}>Pós-graduação</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-cutis">Cútis:</label>
-                            <select id="edit-cutis">
-                                <option value="">Selecione...</option>
-                                <option value="branca" ${abordado.cutis === "branca" ? "selected" : ""}>Branca</option>
-                                <option value="preta" ${abordado.cutis === "preta" ? "selected" : ""}>Preta</option>
-                                <option value="parda" ${abordado.cutis === "parda" ? "selected" : ""}>Parda</option>
-                                <option value="amarela" ${abordado.cutis === "amarela" ? "selected" : ""}>Amarela</option>
-                                <option value="indigena" ${abordado.cutis === "indigena" ? "selected" : ""}>Indígena</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-telefone">Telefone:</label>
-                            <input type="tel" id="edit-telefone" value="${abordado.telefone || ""}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-email">Email:</label>
-                            <input type="email" id="edit-email" value="${abordado.email || ""}">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="edit-observacoes">Observações:</label>
-                        <textarea id="edit-observacoes">${abordado.observacoes || ""}</textarea>
-                    </div>
-                `;
-                
-                abrirModal(modalEditarDados);
-            }
-        }
-        
-        // Função para salvar dados editados
-        function salvarDadosEditados() {
-            if (abordadoParaEditarDados) {
-                const abordado = abordados.find(a => a.id === abordadoParaEditarDados);
-                
-                if (abordado) {
-                    abordado.local_fato = document.getElementById("edit-local_fato").value;
-                    abordado.tipo_envolvido = document.getElementById("edit-tipo_envolvido").value;
-                    abordado.nome = document.getElementById("edit-nome").value;
-                    abordado.nome_mae = document.getElementById("edit-nome_mae").value;
-                    abordado.cpf = document.getElementById("edit-cpf").value;
-                    abordado.rg = document.getElementById("edit-rg").value;
-                    abordado.endereco = document.getElementById("edit-endereco").value;
-                    abordado.profissao = document.getElementById("edit-profissao").value;
-                    abordado.estado_civil = document.getElementById("edit-estado_civil").value;
-                    abordado.escolaridade = document.getElementById("edit-escolaridade").value;
-                    abordado.cutis = document.getElementById("edit-cutis").value;
-                    abordado.telefone = document.getElementById("edit-telefone").value;
-                    abordado.email = document.getElementById("edit-email").value;
-                    abordado.observacoes = document.getElementById("edit-observacoes").value;
-                    abordado.sincronizado = false; // Marcar como não sincronizado
-                    
-                    localStorage.setItem("abordados", JSON.stringify(abordados));
-                    renderizarCatalogo();
-                    fecharModal(modalEditarDados);
-                    mostrarAlerta("Dados atualizados com sucesso!");
-                    abordadoParaEditarDados = null;
-                }
-            }
-        }
-        
-        // Funções para modais
-        function abrirModal(modal) {
-            modal.style.display = "block";
-        }
-        
-        function fecharModal(modal) {
-            modal.style.display = "none";
-        }
-        
-        // Função para gerar PDF individual
-        function gerarPdfIndividual(id) {
-            const abordado = abordados.find(a => a.id === id);
-            if (abordado) {
-                const conteudo = criarConteudoPdf([abordado], `Registro de ${abordado.nome}`);
-                gerarPdf(conteudo, `abordado_${abordado.nome.replace(/\s+/g, "_")}`);
-            }
-        }
-        
-        // Função para gerar PDF de seção
-        function gerarPdfSecao(tipo) {
-            const abordadosDoTipo = abordados.filter(a => a.tipo_envolvido === tipo);
-            const tiposEnvolvido = {
-                "trafico": "Tráfico",
-                "roubo": "Roubo", 
-                "furto": "Furto",
-                "arrombamento": "Arrombamento",
-                "outros": "Outros"
-            };
-            
-            if (abordadosDoTipo.length > 0) {
-                const nomeSecao = tiposEnvolvido[tipo];
-                const conteudo = criarConteudoPdf(abordadosDoTipo, `Registros - ${nomeSecao}`);
-                gerarPdf(conteudo, `secao_${tipo}`);
-            }
-        }
-        
-        // Função para gerar PDF completo
-        function gerarPdfCompleto() {
-            if (abordados.length > 0) {
-                const conteudo = criarConteudoPdf(abordados, "Catálogo Completo de Abordados");
-                gerarPdf(conteudo, "catalogo_completo");
-            } else {
-                mostrarAlerta("Não há registros para gerar PDF.", "error");
-            }
-        }
-        
-        // Função para criar conteúdo do PDF
-        function criarConteudoPdf(listaAbordados, titulo) {
-            const agora = new Date().toLocaleString("pt-BR");
-            
-            let html = `
-                <div style="font-family: Arial, sans-serif; max-width: 210mm; margin: 0 auto; padding: 15mm; background-color: white; color: #000; font-size: 10pt; line-height: 1.4;">
-                    <div style="text-align: center; margin-bottom: 10mm;">
-                        <div style="font-size: 16pt; font-weight: bold; margin-bottom: 5mm;">Sistema de Registro de Abordados</div>
-                        <div style="font-size: 12pt; margin-bottom: 8mm;">${titulo}</div>
-                        <div style="font-size: 10pt; margin-bottom: 15mm;">Gerado em: ${agora}</div>
-                    </div>
-            `;
-            
-            listaAbordados.forEach((abordado, index) => {
-                const dataFormatada = new Date(abordado.data_registro).toLocaleString("pt-BR");
-                
-                html += `
-                    <div style="margin-bottom: 15mm; page-break-inside: avoid;">
-                        <h3>${index + 1}. ${abordado.nome}</h3>
-                        
-                        ${abordado.foto ? `
-                            <div style="text-align: center; margin: 10px 0;">
-                                <img src="${abordado.foto}" style="max-width: 150px; max-height: 150px; border: 1px solid #ccc;">
-                            </div>
-                        ` : ""}
-                        
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold; width: 30%;">Data de Registro:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${dataFormatada}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Local do Fato:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.local_fato}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Tipo de Envolvido:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.tipo_envolvido}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Nome da Mãe:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.nome_mae}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">CPF:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.cpf || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">RG:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.rg || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Endereço:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.endereco || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Profissão:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.profissao || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Estado Civil:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.estado_civil || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Escolaridade:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.escolaridade || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Cútis:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.cutis || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Telefone:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.telefone || "Não informado"}</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ccc; padding: 5px; font-weight: bold;">Email:</td>
-                                <td style="border: 1px solid #ccc; padding: 5px;">${abordado.email || "Não informado"}</td>
-                            </tr>
-                        </table>
-                        
-                        ${abordado.observacoes ? `
-                            <div style="margin-top: 10px;">
-                                <strong>Observações:</strong>
-                                <div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; white-space: pre-wrap;">${abordado.observacoes}</div>
-                            </div>
-                        ` : ""}
-                    </div>
-                `;
-            });
-            
-            html += "</div>";
-            
-            const elemento = document.createElement("div");
-            elemento.innerHTML = html;
-            return elemento;
-        }
-        
-        // Função para gerar PDF
-        function gerarPdf(conteudoHtml, nomeArquivo) {
-            conteudoHtml.style.position = "absolute";
-            conteudoHtml.style.left = "-9999px";
-            document.body.appendChild(conteudoHtml);
-            
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: "portrait",
-                unit: "mm",
-                format: "a4",
-                compress: true
-            });
-            
-            html2canvas(conteudoHtml, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                letterRendering: true,
-                width: conteudoHtml.scrollWidth,
-                height: conteudoHtml.scrollHeight
-            }).then(canvas => {
-                const imgData = canvas.toDataURL("image/jpeg", 1.0);
-                const imgWidth = 210;
-                const pageHeight = 297;
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                doc.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
-                
-                doc.save(`${nomeArquivo}.pdf`);
-                document.body.removeChild(conteudoHtml);
-                mostrarAlerta("PDF gerado com sucesso!", "success");
-            }).catch(error => {
-                console.error("Erro ao gerar PDF:", error);
-                mostrarAlerta(`Erro ao gerar PDF: ${error.message}`, "error");
-                
-                if (document.body.contains(conteudoHtml)) {
-                    document.body.removeChild(conteudoHtml);
-                }
-            });
-        }
-        
-        // Event Listeners
-        tabCadastro.addEventListener("click", (e) => {
-            e.preventDefault();
-            alternarAba("cadastro");
+        const init = () => {
+          if(!fullRef.current || fullMapRef.current) return;
+          fullMapRef.current = L.map(fullRef.current, { zoomControl: true, attributionControl:false }).setView([-19.9184, -43.9405], 15);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(fullMapRef.current);
+          setTimeout(()=>{ try{ fullMapRef.current.invalidateSize(true); const b = L.geoJSON(window.SECTORES_GEOJSON).getBounds(); fullMapRef.current.fitBounds(b, {padding:[30,30]}); }catch(e){} }, 100);
+        };
+        const timers = [0,80,200].map(t=>setTimeout(init,t));
+        return () => { timers.forEach(clearTimeout); };
+      },[full]);
+      const centralizarMapa = () => { try { const b = L.geoJSON(window.SECTORES_GEOJSON).getBounds(); mapRef.current.fitBounds(b, {padding:[20,20]}); } catch(e){ mapRef.current && mapRef.current.setView([-19.9184, -43.9405], 15); } };
+      const exportMapPng = async () => { try { if(!window.html2canvas || !wrapperRef.current) return alert('Recurso de exportação ainda não carregou. Tente novamente.'); const canvas = await html2canvas(wrapperRef.current, {backgroundColor:'#07111f', useCORS:true, scale:2}); const a=document.createElement('a'); a.download='mapa_operacional_furtos_6cia.png'; a.href=canvas.toDataURL('image/png'); a.click(); } catch(e){ alert('Não foi possível exportar o mapa em PNG neste navegador.'); } };
+      useEffect(()=>{ const onKey=(e)=>{ if(e.key==='Escape') setFull(false); }; window.addEventListener('keydown', onKey); return ()=>window.removeEventListener('keydown', onKey); },[]);
+      useEffect(()=>{
+        if(!mapRef.current) return;
+        if(layerRef.current) layerRef.current.remove();
+        const maxIvso=Math.max(1,...bySector.map(s=>s.ivso));
+        const group = L.layerGroup();
+        const polygons = L.geoJSON(window.SECTORES_GEOJSON, {
+          style: f => {
+            const setor=f.properties.SETOR; const m=bySector.find(x=>x.setor===setor)||{ivso:0};
+            return { color: SECTOR_COLORS[setor], weight:selected===setor?5:2, fillColor:SECTOR_COLORS[setor], fillOpacity: .10 + .30*(m.ivso/maxIvso) };
+          },
+          onEachFeature: (f, layer) => {
+            const setor=f.properties.SETOR; const m=bySector.find(x=>x.setor===setor)||{};
+            layer.bindTooltip(`<b>${setor}</b><br>Furtos: ${m.total||0}<br>Recuperados: ${m.rec||0}<br>Não recuperados: ${m.nao||0}<br>Auditorias: ${m.aud||0}<br>IVSO: ${m.ivso||0}`, {sticky:true});
+            layer.on('click',()=>setSelected(setor));
+          }
+        }).addTo(group);
+        const clusters = new Map();
+        rows.forEach((r,idx)=>{
+          const [lat,lng,exact,src]=furtoLatLng(r);
+          const k = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+          if(!clusters.has(k)) clusters.set(k,{lat,lng,items:[], exact, src});
+          clusters.get(k).items.push({...r, _idx:idx, _exact:exact, _src:src});
         });
-        
-        tabCatalogo.addEventListener("click", (e) => {
-            e.preventDefault();
-            alternarAba("catalogo");
-        });
-        
-        formAbordado.addEventListener("submit", processarFormulario);
-        
-        document.getElementById("btn-sincronizar").addEventListener("click", sincronizarDados);
-        document.getElementById("btn-gerar-pdf").addEventListener("click", gerarPdfCompleto);
-        document.getElementById("btn-expandir-todos").addEventListener("click", expandirTodas);
-        document.getElementById("btn-recolher-todos").addEventListener("click", recolherTodas);
-        
-        document.getElementById("btn-confirmar-exclusao").addEventListener("click", confirmarExclusao);
-        document.getElementById("btn-salvar-foto").addEventListener("click", salvarNovaFoto);
-        document.getElementById("btn-salvar-dados").addEventListener("click", salvarDadosEditados);
-        
-        // Fechar modais
-        document.querySelectorAll(".close, #btn-cancelar-exclusao").forEach(element => {
-            element.addEventListener("click", () => {
-                fecharModal(modalExcluir);
-            });
-        });
-        
-        document.querySelectorAll(".close, #btn-cancelar-edicao-foto").forEach(element => {
-            element.addEventListener("click", () => {
-                fecharModal(modalEditarFoto);
-            });
-        });
-        
-        document.querySelectorAll(".close, #btn-cancelar-edicao-dados").forEach(element => {
-            element.addEventListener("click", () => {
-                fecharModal(modalEditarDados);
-            });
-        });
-        
-        // Fechar modais ao clicar fora deles
-        window.addEventListener("click", (e) => {
-            if (e.target === modalExcluir) {
-                fecharModal(modalExcluir);
-            }
-            if (e.target === modalEditarFoto) {
-                fecharModal(modalEditarFoto);
-            }
-            if (e.target === modalEditarDados) {
-                fecharModal(modalEditarDados);
-            }
-        });
-        
-        // Monitorar mudanças de conectividade
-        window.addEventListener("online", () => {
-            isOnline = true;
-            atualizarStatusConexao();
-            verificarConectividade();
-        });
-        
-        window.addEventListener("offline", () => {
-            isOnline = false;
-            atualizarStatusConexao();
-        });
-        
-        // Inicialização
-        verificarConectividade();
-        renderizarCatalogo();
-        
-        // Adicionar alguns dados de exemplo se não houver nenhum
-        if (abordados.length === 0) {
-            abordados.push({
-                id: "1",
-                data_registro: new Date().toISOString(),
-                local_fato: "Rua Afonso Pena, 412",
-                tipo_envolvido: "trafico",
-                nome: "João da Silva",
-                nome_mae: "Maria da Silva",
-                cpf: "123.456.789-00",
-                rg: "1234567",
-                endereco: "Rua das Flores, 123, Centro, São Paulo",
-                profissao: "Desempregado",
-                estado_civil: "solteiro",
-                escolaridade: "medio_completo",
-                cutis: "parda",
-                telefone: "(11) 98765-4321",
-                email: "joao@exemplo.com",
-                observacoes: "Abordado demonstrou nervosismo durante a abordagem. Possui tatuagem de dragão no braço direito.",
-                foto: null,
-                sincronizado: false
-            });
-            
-            abordados.push({
-                id: "2",
-                data_registro: new Date().toISOString(),
-                local_fato: "Avenida Brasil, 1500",
-                tipo_envolvido: "roubo",
-                nome: "Pedro Oliveira",
-                nome_mae: "Ana Oliveira",
-                cpf: "987.654.321-00",
-                rg: "7654321",
-                endereco: "Av. Paulista, 1000, Bela Vista, São Paulo",
-                profissao: "Autônomo",
-                estado_civil: "casado",
-                escolaridade: "superior_incompleto",
-                cutis: "branca",
-                telefone: "(11) 91234-5678",
-                email: "pedro@exemplo.com",
-                observacoes: "Encontrado com objetos de procedência duvidosa. Já possui passagem por crimes semelhantes.",
-                foto: null,
-                sincronizado: false
-            });
-            
-            abordados.push({
-                id: "3",
-                data_registro: new Date().toISOString(),
-                local_fato: "Praça da Liberdade, s/n",
-                tipo_envolvido: "furto",
-                nome: "Carlos Santos",
-                nome_mae: "Joana Santos",
-                cpf: "111.222.333-44",
-                rg: "2233445",
-                endereco: "Rua Augusta, 500, Consolação, São Paulo",
-                profissao: "Estudante",
-                estado_civil: "solteiro",
-                escolaridade: "superior_incompleto",
-                cutis: "preta",
-                telefone: "(11) 97777-8888",
-                email: "carlos@exemplo.com",
-                observacoes: "",
-                foto: null,
-                sincronizado: false
-            });
-            
-            localStorage.setItem("abordados", JSON.stringify(abordados));
-            renderizarCatalogo();
+        const maxCluster = Math.max(1,...Array.from(clusters.values()).map(c=>c.items.length));
+        const offsetPoint = (lat,lng,i,total)=>{
+          if(total<=1) return [lat,lng];
+          const radiusMeters = Math.min(28, 9 + total * 4);
+          const angle = (2 * Math.PI * i / total) - Math.PI/2;
+          const dLat = (Math.sin(angle) * radiusMeters) / 111320;
+          const dLng = (Math.cos(angle) * radiusMeters) / (111320 * Math.cos(lat * Math.PI / 180));
+          return [lat + dLat, lng + dLng];
+        };
+        if(showHeat){
+          clusters.forEach(c=>{
+            const count = c.items.length;
+            const radius = Math.min(85, 18 + count * 14);
+            const color = count >= 3 ? '#ff3b3b' : (count === 2 ? '#ff9f1c' : '#38bdf8');
+            L.circle([c.lat,c.lng], {radius, color, weight:1, fillColor:color, fillOpacity:0.22, opacity:0.55}).addTo(group);
+          });
         }
-    </script>
+        clusters.forEach(c=>{
+          const count = c.items.length;
+          c.items.forEach((item, i)=>{
+            const isClustered = count > 1;
+            const [mlat, mlng] = offsetPoint(c.lat, c.lng, i, count);
+            const hasAudit = isSim(item.CABE_AUDITORIA);
+            const hasNao = !isSim(item.LOCALIZADO);
+            const isRec = isSim(item.LOCALIZADO);
+            if(!showPins) return;
+            if(hasAudit && !showAud) return;
+            if(hasNao && !showNao) return;
+            if(isRec && !hasAudit && !showRec) return;
+            const fill = hasAudit ? '#ff3b3b' : (hasNao ? '#ff9f1c' : '#45e06f');
+            const size = isClustered ? 22 : 20;
+            const opacity = (item._src==='setor' || item._src==='cadastro') ? .78 : 1;
+            const label = isClustered ? (i+1) : '•';
+            const tooltip = `<div style="min-width:260px"><b>Local do fato</b>${isClustered?` • registro ${i+1} de ${count} no mesmo ponto`:''}<br><b>${item.REDS}</b><br>${item.ENDERECO_FURTO||'-'}<br>${item.SETOR||'-'} • ${item.TIPO_VEICULO||''}<br>Localizado: ${item.LOCALIZADO||'-'} • Auditoria: ${item.CABE_AUDITORIA||'-'}<br><span style="color:#93c5fd">Coord.: ${item._src}</span>${isClustered?'<br><span style="color:#fbbf24">Pingos separados automaticamente para permitir clique e ajuste individual.</span>':''}${editMode?'<br><b>Arraste este pingo para corrigir só este REDS.</b>':''}</div>`;
+            const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${isClustered?11:18}px;background:${fill};opacity:${opacity};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
+            const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
+              .bindTooltip(tooltip, {sticky:true, maxWidth:420})
+              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
+            if(editMode){
+              marker.on('dragend', (ev)=>{
+                const pos = ev.target.getLatLng();
+                const next = {...(window.COORD_OVERRIDES||{})};
+                if(item.REDS) next[String(item.REDS).trim()] = {lat:pos.lat, lng:pos.lng, origem:'manual'};
+                saveOverrides(next);
+              });
+            }
+            marker.addTo(group);
+          });
+        });
+        layerRef.current = group.addTo(mapRef.current);
+        try { mapRef.current.fitBounds(polygons.getBounds(), {padding:[20,20]}); } catch(e) {}
+      },[rows, selected, bySector, editMode, coordOverrides, showHeat, showPins, showAud, showNao, showRec]);
+      useEffect(()=>{
+        if(!full || !fullMapRef.current) return;
+        const targetMap = fullMapRef.current;
+        if(fullLayerRef.current) fullLayerRef.current.remove();
+        const maxIvso=Math.max(1,...bySector.map(s=>s.ivso));
+        const group = L.layerGroup();
+        const polygons = L.geoJSON(window.SECTORES_GEOJSON, {
+          style: f => {
+            const setor=f.properties.SETOR; const m=bySector.find(x=>x.setor===setor)||{ivso:0};
+            return { color: SECTOR_COLORS[setor], weight:selected===setor?5:2, fillColor:SECTOR_COLORS[setor], fillOpacity: .10 + .30*(m.ivso/maxIvso) };
+          },
+          onEachFeature: (f, layer) => {
+            const setor=f.properties.SETOR; const m=bySector.find(x=>x.setor===setor)||{};
+            layer.bindTooltip(`<b>${setor}</b><br>Furtos: ${m.total||0}<br>Recuperados: ${m.rec||0}<br>Não recuperados: ${m.nao||0}<br>Auditorias: ${m.aud||0}<br>IVSO: ${m.ivso||0}`, {sticky:true});
+            layer.on('click',()=>setSelected(setor));
+          }
+        }).addTo(group);
+        const clusters = new Map();
+        rows.forEach((r,idx)=>{
+          const [lat,lng,exact,src]=furtoLatLng(r);
+          const k = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+          if(!clusters.has(k)) clusters.set(k,{lat,lng,items:[], exact, src});
+          clusters.get(k).items.push({...r, _idx:idx, _exact:exact, _src:src});
+        });
+        const offsetPoint = (lat,lng,i,total)=>{
+          if(total<=1) return [lat,lng];
+          const radiusMeters = Math.min(28, 9 + total * 4);
+          const angle = (2 * Math.PI * i / total) - Math.PI/2;
+          const dLat = (Math.sin(angle) * radiusMeters) / 111320;
+          const dLng = (Math.cos(angle) * radiusMeters) / (111320 * Math.cos(lat * Math.PI / 180));
+          return [lat + dLat, lng + dLng];
+        };
+        if(showHeat){
+          clusters.forEach(c=>{
+            const count = c.items.length;
+            const radius = Math.min(85, 18 + count * 14);
+            const color = count >= 3 ? '#ff3b3b' : (count === 2 ? '#ff9f1c' : '#38bdf8');
+            L.circle([c.lat,c.lng], {radius, color, weight:1, fillColor:color, fillOpacity:0.22, opacity:0.55}).addTo(group);
+          });
+        }
+        clusters.forEach(c=>{
+          const count = c.items.length;
+          c.items.forEach((item, i)=>{
+            const [mlat, mlng] = offsetPoint(c.lat, c.lng, i, count);
+            const hasAudit = isSim(item.CABE_AUDITORIA);
+            const hasNao = !isSim(item.LOCALIZADO);
+            const isRec = isSim(item.LOCALIZADO);
+            if(!showPins) return;
+            if(hasAudit && !showAud) return;
+            if(hasNao && !showNao) return;
+            if(isRec && !hasAudit && !showRec) return;
+            const fill = hasAudit ? '#ff3b3b' : (hasNao ? '#ff9f1c' : '#45e06f');
+            const size = count > 1 ? 22 : 20;
+            const label = count > 1 ? (i+1) : '•';
+            const tooltip = `<div style="min-width:260px"><b>Local do fato</b>${count>1?` • registro ${i+1} de ${count} no mesmo ponto`:''}<br><b>${item.REDS}</b><br>${item.ENDERECO_FURTO||'-'}<br>${item.SETOR||'-'} • ${item.TIPO_VEICULO||''}<br>Localizado: ${item.LOCALIZADO||'-'} • Auditoria: ${item.CABE_AUDITORIA||'-'}${editMode?'<br><b>Arraste este pingo para corrigir só este REDS.</b>':''}</div>`;
+            const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${count>1?11:18}px;background:${fill};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
+            const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
+              .bindTooltip(tooltip, {sticky:true, maxWidth:420})
+              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
+            if(editMode){
+              marker.on('dragend', (ev)=>{
+                const pos = ev.target.getLatLng();
+                const next = {...(window.COORD_OVERRIDES||{})};
+                if(item.REDS) next[String(item.REDS).trim()] = {lat:pos.lat, lng:pos.lng, origem:'manual'};
+                saveOverrides(next);
+              });
+            }
+            marker.addTo(group);
+          });
+        });
+        fullLayerRef.current = group.addTo(targetMap);
+        setTimeout(()=>{ try{ targetMap.invalidateSize(true); targetMap.fitBounds(polygons.getBounds(), {padding:[30,30]}); }catch(e){} }, 120);
+      },[full, rows, selected, bySector, editMode, coordOverrides, showHeat, showPins, showAud, showNao, showRec]);
+      const hot = useMemo(()=>{
+        const map = new Map(); rows.forEach(r=>{ const [lat,lng]=furtoLatLng(r); const k=`${lat.toFixed(4)},${lng.toFixed(4)}`; if(!map.has(k)) map.set(k,{count:0, endereco:r.ENDERECO_FURTO,setor:r.SETOR}); map.get(k).count++; });
+        return [...map.values()].sort((a,b)=>b.count-a.count)[0];
+      },[rows]);
+      return <div ref={wrapperRef} className={`rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow h-full`}><div className="map-header flex items-center justify-between gap-2 mb-3"><div><h3 className="font-bold text-cyan-100">Mapa de calor dos locais do fato</h3><p className="text-xs text-slate-400">Cada pingo marca um REDS/local do fato. Use tela cheia para apresentar, ligar/desligar camadas e ajustar coordenadas.</p></div><div className="flex flex-wrap gap-2 justify-end"><button className="text-xs px-2 py-1 rounded border border-cyan-700 text-cyan-200 hover:bg-cyan-950" onClick={()=>setFull(v=>!v)}>{full?'✕ Fechar':'⛶ Tela cheia'}</button><button className="text-xs px-2 py-1 rounded border border-cyan-700 text-cyan-200 hover:bg-cyan-950" onClick={centralizarMapa}>⌖ Centralizar</button><button className="text-xs px-2 py-1 rounded border border-cyan-700 text-cyan-200 hover:bg-cyan-950" onClick={exportMapPng}>📷 PNG</button><button className="text-xs px-2 py-1 rounded border border-cyan-700 text-cyan-200 hover:bg-cyan-950" onClick={()=>setSelected('Todos')}>limpar seleção</button><button className={`text-xs px-2 py-1 rounded border ${editMode?'border-amber-400 text-amber-200 bg-amber-950/40':'border-slate-600 text-slate-200 hover:bg-slate-800'}`} onClick={()=>setEditMode(v=>!v)}>{editMode?'salvar/encerrar ajuste':'ajustar pingos'}</button><button disabled={geoBusy} className="text-xs px-2 py-1 rounded border border-emerald-700 text-emerald-200 hover:bg-emerald-950 disabled:opacity-50" onClick={geocodeVisible}>{geoBusy?'geocodificando...':'geocodificar endereços'}</button></div></div><div className="mb-2 flex flex-wrap gap-2 text-xs"><label className="px-2 py-1 rounded border border-slate-700 bg-slate-950/60"><input type="checkbox" checked={showHeat} onChange={e=>setShowHeat(e.target.checked)} className="mr-1"/>🔥 Heatmap</label><label className="px-2 py-1 rounded border border-slate-700 bg-slate-950/60"><input type="checkbox" checked={showPins} onChange={e=>setShowPins(e.target.checked)} className="mr-1"/>📍 Pingos</label><label className="px-2 py-1 rounded border border-red-800 bg-slate-950/60"><input type="checkbox" checked={showAud} onChange={e=>setShowAud(e.target.checked)} className="mr-1"/>Auditoria</label><label className="px-2 py-1 rounded border border-amber-700 bg-slate-950/60"><input type="checkbox" checked={showNao} onChange={e=>setShowNao(e.target.checked)} className="mr-1"/>Não localizados</label><label className="px-2 py-1 rounded border border-emerald-700 bg-slate-950/60"><input type="checkbox" checked={showRec} onChange={e=>setShowRec(e.target.checked)} className="mr-1"/>Recuperados</label></div><div ref={ref} className={`h-[420px] rounded-lg overflow-hidden border border-slate-700`}></div><div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-300"><span><b style={{color:'#ff3b3b'}}>●</b> Auditoria</span><span><b style={{color:'#ff9f1c'}}>●</b> Não localizado</span><span><b style={{color:'#45e06f'}}>●</b> Recuperado</span>{hot && <span className="text-amber-200">🔥 Maior repetição: <b>{hot.endereco}</b> ({hot.count})</span>}</div>{geoMsg && <p className="mt-1 text-[11px] text-emerald-300">{geoMsg}</p>}<div className="mt-2 flex gap-2"><button className="text-xs px-2 py-1 rounded border border-slate-600 text-slate-300 hover:bg-slate-800" onClick={exportCoords}>Exportar coordenadas atuais</button><button className="text-xs px-2 py-1 rounded border border-red-800 text-red-200 hover:bg-red-950" onClick={()=>{ if(confirm('Limpar todas as coordenadas ajustadas/geocodificadas?')) saveOverrides({}); }}>Limpar ajustes do mapa</button></div><p className="mt-1 text-[11px] text-slate-500">Precisão: LATITUDE/LONGITUDE da planilha &gt; ajuste manual/geocodificação &gt; cadastro aproximado por endereço. Pingos repetidos são abertos em círculo para não ficarem sobrepostos. Os ajustes ficam salvos neste navegador.</p>{full && <div className="fullscreen-overlay"><div className="flex items-center justify-between gap-3 mb-3"><div><h2 className="text-xl font-black text-cyan-100">Mapa de calor dos locais do fato</h2><p className="text-xs text-slate-400">Tela cheia independente para apresentação operacional.</p></div><div className="flex gap-2"><button className="text-xs px-3 py-2 rounded border border-cyan-700 text-cyan-200 hover:bg-cyan-950" onClick={centralizarMapa}>⌖ Centralizar</button><button className="text-xs px-3 py-2 rounded border border-red-700 text-red-200 hover:bg-red-950" onClick={()=>setFull(false)}>✕ Fechar</button></div></div><div className="mb-2 flex flex-wrap gap-2 text-xs"><label className="px-2 py-1 rounded border border-slate-700 bg-slate-950/60"><input type="checkbox" checked={showHeat} onChange={e=>setShowHeat(e.target.checked)} className="mr-1"/>🔥 Heatmap</label><label className="px-2 py-1 rounded border border-slate-700 bg-slate-950/60"><input type="checkbox" checked={showPins} onChange={e=>setShowPins(e.target.checked)} className="mr-1"/>📍 Pingos</label><label className="px-2 py-1 rounded border border-red-800 bg-slate-950/60"><input type="checkbox" checked={showAud} onChange={e=>setShowAud(e.target.checked)} className="mr-1"/>Auditoria</label><label className="px-2 py-1 rounded border border-amber-700 bg-slate-950/60"><input type="checkbox" checked={showNao} onChange={e=>setShowNao(e.target.checked)} className="mr-1"/>Não localizados</label><label className="px-2 py-1 rounded border border-emerald-700 bg-slate-950/60"><input type="checkbox" checked={showRec} onChange={e=>setShowRec(e.target.checked)} className="mr-1"/>Recuperados</label></div><div ref={fullRef} className="fullscreen-map-canvas rounded-lg overflow-hidden border border-slate-700"></div></div>}</div>
+    }
+    function Table({rows}) {
+      const auditRows = rows.filter(r=>isSim(r.CABE_AUDITORIA));
+      return <div className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow h-full"><div className="flex items-center justify-between mb-3"><h3 className="font-bold text-cyan-100">REDS passíveis de auditoria</h3><span className="text-sm text-amber-300">{auditRows.length} registros</span></div><div className="overflow-auto max-h-[410px] scrollbar"><table className="w-full text-sm"><thead className="sticky top-0 bg-slate-900"><tr className="text-cyan-200"><th className="text-left p-2">REDS</th><th className="text-left p-2">Data</th><th className="text-left p-2">Setor</th><th className="text-left p-2">Tipo</th><th className="text-left p-2">Motivo</th></tr></thead><tbody>{auditRows.map((r,i)=><tr key={i} className="border-t border-slate-800 hover:bg-slate-800/80"><td className="p-2 whitespace-nowrap">{r.REDS}</td><td className="p-2 whitespace-nowrap">{r.DATA || String(r.DATA_HORA||'').slice(0,10)}</td><td className="p-2">{r.SETOR}</td><td className="p-2">{r.TIPO_VEICULO}</td><td className="p-2 max-w-[380px] truncate" title={r.MOTIVO}>{r.MOTIVO}</td></tr>)}</tbody></table></div></div>
+    }
+
+    function normalizeImportedRows(rawRows){
+      const novosDados = (rawRows||[]).map(r=>{
+        const out={...r};
+        if(out['SETOR ']) out.SETOR=out['SETOR '];
+        if(out['Setor']) out.SETOR=out['Setor'];
+        if(out['TIPO DE VEÍCULO ']) out.TIPO_VEICULO=out['TIPO DE VEÍCULO '];
+        if(out['TIPO DE VEÍCULO']) out.TIPO_VEICULO=out['TIPO DE VEÍCULO'];
+        if(out['TIPO_VEÍCULO']) out.TIPO_VEICULO=out['TIPO_VEÍCULO'];
+        if(out['NUMERO REDS']) out.REDS=out['NUMERO REDS'];
+        if(out['NÚMERO REDS']) out.REDS=out['NÚMERO REDS'];
+        if(out['CABE AUDITORIA']) out.CABE_AUDITORIA=out['CABE AUDITORIA'];
+        if(out['CABE_AUDITORIA ']) out.CABE_AUDITORIA=out['CABE_AUDITORIA '];
+        if(out['ENDEREÇO DO FURTO']) out.ENDERECO_FURTO=out['ENDEREÇO DO FURTO'];
+        if(out['ENDERECO DO FURTO']) out.ENDERECO_FURTO=out['ENDERECO DO FURTO'];
+        if(out['ENDEREÇO_FURTO']) out.ENDERECO_FURTO=out['ENDEREÇO_FURTO'];
+        if(out['DATA/HORA']) out.DATA_HORA=out['DATA/HORA'];
+        if(out['DATA HORA']) out.DATA_HORA=out['DATA HORA'];
+        if(out['LATITUDE']) out.LATITUDE=out['LATITUDE'];
+        if(out['LONGITUDE']) out.LONGITUDE=out['LONGITUDE'];
+        return out;
+      }).filter(r=>String(r.REDS||'').trim());
+      const porReds = new Map();
+      novosDados.forEach(r => porReds.set(String(r.REDS).trim(), r));
+      return {base:Array.from(porReds.values()), duplicados: novosDados.length - porReds.size, lidos: novosDados.length};
+    }
+
+    function Filters({data, rows, filters, setFilters, onCsv, onGoogleSheet, loadingSheet, sheetStatus}) {
+      const opts = (field) => ['Todos', ...Array.from(new Set(data.map(r=>field(r)).filter(Boolean))).sort()];
+      const Select=({label, val, set, items})=><label className="block"><span className="text-xs uppercase text-slate-400">{label}</span><select value={val} onChange={e=>set(e.target.value)} className="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm">{items.map(x=><option key={x}>{x}</option>)}</select></label>;
+      return <aside className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow space-y-4 h-full"><h3 className="font-black text-cyan-100">Filtros</h3><Select label="Mês" val={filters.mes} set={v=>setFilters(f=>({...f,mes:v}))} items={opts(r=>r.MES_LABEL || r.MÊS || r.MES)} /><Select label="Setor" val={filters.setor} set={v=>setFilters(f=>({...f,setor:v}))} items={['Todos','PRAÇA SETE','RODOVIÁRIA','MERCADO CENTRAL']} /><Select label="Tipo de veículo" val={filters.tipo} set={v=>setFilters(f=>({...f,tipo:v}))} items={opts(r=>norm(r.TIPO_VEICULO))} /><Select label="Localizado" val={filters.localizado} set={v=>setFilters(f=>({...f,localizado:v}))} items={['Todos','SIM','NÃO']} /><Select label="Auditoria" val={filters.auditoria} set={v=>setFilters(f=>({...f,auditoria:v}))} items={['Todos','SIM','NÃO']} /><button onClick={()=>setFilters({setor:'Todos',tipo:'Todos',localizado:'Todos',auditoria:'Todos',mes:'Todos'})} className="w-full border border-cyan-700 text-cyan-200 rounded-lg p-2 hover:bg-cyan-950">Limpar filtros</button><div className="border-t border-slate-700 pt-4 space-y-3"><div><label className="text-xs uppercase text-slate-400">Google Planilhas</label><button onClick={onGoogleSheet} disabled={loadingSheet} className="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-lg p-2 text-sm">{loadingSheet?'Carregando...':'Atualizar direto da planilha'}</button><p className="text-xs text-slate-500 mt-2">Lê a planilha Google, substitui a base atual e remove duplicidades pelo REDS.</p>{sheetStatus && <p className="text-xs text-emerald-300 mt-1">{sheetStatus}</p>}</div><div className="pt-3 border-t border-slate-800"><label className="text-xs uppercase text-slate-400">Atualizar CSV manual</label><input type="file" accept=".csv" onChange={onCsv} className="mt-2 block w-full text-xs"/></div></div><ExportButtons rows={rows} /></aside>
+    }
+    function App() {
+      const [data,setData] = useState(()=>{
+        try {
+          const saved = localStorage.getItem(DATA_STORAGE_KEY);
+          if(saved){
+            const parsed = JSON.parse(saved);
+            if(Array.isArray(parsed) && parsed.length) return parsed;
+          }
+        } catch(e) {}
+        return window.INITIAL_DATA || [];
+      });
+      const [loadingSheet,setLoadingSheet] = useState(false);
+      const [sheetStatus,setSheetStatus] = useState(()=>localStorage.getItem(LAST_LOAD_STORAGE_KEY) || '');
+      const [coordOverrides,setCoordOverrides] = useState(()=>{ try { return JSON.parse(localStorage.getItem(COORD_STORAGE_KEY)||'{}'); } catch(e){ return {}; } });
+      useEffect(()=>{ window.COORD_OVERRIDES = coordOverrides || {}; }, [coordOverrides]);
+      const [filters,setFilters] = useState({setor:'Todos',tipo:'Todos',localizado:'Todos',auditoria:'Todos',mes:'Todos'});
+      const rows = useFiltered(data, filters); const m = metrics(rows); const bySector=metricsBySector(rows);
+      const furtoSetor = bySector.map(s=>({name:s.setor,value:s.total})).sort((a,b)=>b.value-a.value);
+      const audSetor = bySector.map(s=>({name:s.setor,value:s.aud})).sort((a,b)=>b.value-a.value);
+      const dias = DIA_ORDER.map(d=>({name:d,value:rows.filter(r=>r.DIA_SEMANA===d).length}));
+      const substituirBase = (rawRows, origem='CSV')=>{
+        const {base, duplicados, lidos} = normalizeImportedRows(rawRows);
+        setData(base);
+        try {
+          localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(base));
+        } catch(e) {
+          console.warn('Não foi possível salvar a base no navegador.', e);
+        }
+        setFilters({setor:'Todos',tipo:'Todos',localizado:'Todos',auditoria:'Todos',mes:'Todos'});
+        const status = `${origem}: ${base.length} registros carregados. Duplicidades removidas: ${duplicados}. Última carga: ${new Date().toLocaleString('pt-BR')}.`;
+        setSheetStatus(status);
+        try { localStorage.setItem(LAST_LOAD_STORAGE_KEY, status); } catch(e) {}
+        return {base, duplicados, lidos};
+      };
+      const gvizTableToRows=(table)=>{
+        const headers=(table.cols||[]).map((c,i)=> (c.label || c.id || `COLUNA_${i+1}`).trim());
+        return (table.rows||[]).map(row=>{
+          const obj={};
+          headers.forEach((h,i)=>{
+            const cell=row.c && row.c[i];
+            obj[h] = cell ? (cell.f ?? cell.v ?? '') : '';
+          });
+          return obj;
+        }).filter(r=>Object.values(r).some(v=>String(v||'').trim()));
+      };
+      const carregarGoogleSheet=(silent=false)=>{
+        setLoadingSheet(true);
+        setSheetStatus('Conectando ao Google Planilhas via JSONP...');
+
+        // JSONP evita o bloqueio de CORS quando o dashboard é aberto como arquivo local (file:///).
+        const callbackName = 'googleSheetCallback_' + Date.now();
+        const script = document.createElement('script');
+        const timeout = setTimeout(()=>{
+          cleanup();
+          setLoadingSheet(false);
+          setSheetStatus('Falha ao acessar via JSONP. Use o botão CSV manual ou abra pelo Live Server.');
+          if(!silent) alert('Não consegui carregar automaticamente. Como alternativa, baixe o CSV da planilha publicada e importe pelo botão CSV manual.');
+        }, 20000);
+        const cleanup=()=>{
+          clearTimeout(timeout);
+          try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+          if(script && script.parentNode) script.parentNode.removeChild(script);
+        };
+        window[callbackName]=(json)=>{
+          try{
+            const rowsFromSheet = gvizTableToRows(json.table || {});
+            const r = substituirBase(rowsFromSheet, 'Google Planilhas');
+            setSheetStatus(`Google Planilhas: ${r.base.length} registros carregados. Duplicidades removidas: ${r.duplicados}.`);
+            if(!silent) alert(`Planilha Google carregada com sucesso. Registros: ${r.base.length}. Duplicidades removidas: ${r.duplicados}.`);
+          }catch(err){
+            console.error(err);
+            setSheetStatus('Erro ao tratar os dados retornados pela planilha. Verifique o nome das colunas.');
+            if(!silent) alert('A planilha foi acessada, mas não consegui tratar os dados. Verifique se a aba publicada contém cabeçalhos na primeira linha.');
+          }finally{
+            cleanup();
+            setLoadingSheet(false);
+          }
+        };
+        script.onerror=()=>{
+          cleanup();
+          setLoadingSheet(false);
+          setSheetStatus('Falha ao conectar na planilha Google.');
+          if(!silent) alert('Não consegui conectar na planilha Google. Confirme se ela está publicada na web como CSV e se a internet está ativa.');
+        };
+        script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?gid=${GOOGLE_SHEET_GID}&tqx=out:json;responseHandler:${callbackName}`;
+        document.body.appendChild(script);
+      };
+
+      // Ao abrir ou apertar F5, tenta atualizar automaticamente pelo Google Planilhas.
+      // Se a internet falhar, mantém a última base salva no navegador.
+      useEffect(()=>{
+        carregarGoogleSheet(true);
+      }, []);
+
+      const handleCsv=(e)=>{
+        const file=e.target.files[0];
+        if(!file)return;
+        Papa.parse(file, {
+          header:true,
+          skipEmptyLines:true,
+          complete:(res)=>{
+            const r = substituirBase(res.data, 'CSV');
+            alert(`Base substituída com sucesso. Registros importados: ${r.base.length}. Duplicidades removidas: ${r.duplicados}.`);
+            e.target.value = '';
+          }
+        });
+      };
+      return <main className="min-h-screen p-5 grid-bg"><header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5"><div><div className="text-xs tracking-[.35em] text-cyan-300 uppercase">6ª CIA PM • Praça Sete • Rodoviária • Mercado Central</div><h1 className="text-3xl lg:text-4xl font-black">AUDITORIA OPERACIONAL – FURTO DE VEÍCULOS</h1><p className="text-slate-400">Dashboard Web interativo • Google Planilhas • Sem servidor</p></div><div className="text-right text-sm text-slate-300"><b>Base atual:</b> {data.length} registros<br/><b>Fonte:</b> Google Planilhas / CSV<br/><b>Status:</b> {sheetStatus || 'Base local / inicial'}</div></header><section className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4"><KPI title="Total de furtos" value={moneyless(m.total)} icon="🚗" color="#55c7ff" /><KPI title="Recuperados" value={moneyless(m.rec)} icon="✅" color="#7ee36a" onClick={()=>setFilters(f=>({...f,localizado:'SIM'}))}/><KPI title="Não recuperados" value={moneyless(m.nao)} icon="❌" color="#ff5f64" onClick={()=>setFilters(f=>({...f,localizado:'NÃO'}))}/><KPI title="Passíveis de auditoria" value={moneyless(m.aud)} icon="🔎" color="#ffd05a" onClick={()=>setFilters(f=>({...f,auditoria:'SIM'}))}/><KPI title="Taxa de recuperação" value={pct(m.rec,m.total)} icon="📈" color="#58f0ff" /></section><section className="grid grid-cols-1 xl:grid-cols-12 gap-4"><div className="xl:col-span-2"><Filters data={data} rows={rows} filters={filters} setFilters={setFilters} onCsv={handleCsv} onGoogleSheet={carregarGoogleSheet} loadingSheet={loadingSheet} sheetStatus={sheetStatus} /></div><div className="xl:col-span-5"><SectorMap rows={rows} selected={filters.setor} setSelected={v=>setFilters(f=>({...f,setor:v}))} coordOverrides={coordOverrides} setCoordOverrides={setCoordOverrides} /></div><div className="xl:col-span-5"><Table rows={rows} /></div><div className="xl:col-span-4"><BarChart title="Furtos por setor" data={furtoSetor} onClick={v=>setFilters(f=>({...f,setor:v}))} selected={filters.setor}/></div><div className="xl:col-span-4"><BarChart title="Auditorias por setor" data={audSetor} color="#ff5f64" onClick={v=>setFilters(f=>({...f,setor:v}))} selected={filters.setor}/></div><div className="xl:col-span-4"><BarChart title="Furtos por dia da semana" data={dias} color="#27a2ff" /></div><div className="xl:col-span-6"><LineChart rows={rows} /></div><div className="xl:col-span-6 rounded-xl bg-slate-900/70 border border-slate-700 p-4 card-glow"><h3 className="font-bold text-cyan-100 mb-3">Indicadores por setor</h3><table className="w-full text-sm"><thead><tr className="text-cyan-200 border-b border-slate-700"><th className="text-left p-2">Setor</th><th className="p-2">Furtos</th><th className="p-2">Rec.</th><th className="p-2">Não rec.</th><th className="p-2">Aud.</th><th className="p-2">Tx.</th><th className="p-2">IVSO</th></tr></thead><tbody>{bySector.map(s=><tr key={s.setor} className="border-b border-slate-800"><td className="p-2" style={{color:SECTOR_COLORS[s.setor]}}>● {s.setor}</td><td className="text-center p-2">{s.total}</td><td className="text-center p-2">{s.rec}</td><td className="text-center p-2">{s.nao}</td><td className="text-center p-2">{s.aud}</td><td className="text-center p-2">{pct(s.rec,s.total)}</td><td className="text-center p-2 font-black text-amber-300">{s.ivso}</td></tr>)}</tbody></table><p className="text-xs text-slate-500 mt-3">IVSO = (Furtos × 2) + (Auditorias × 3) + (Não recuperados × 4) - Recuperados.</p></div></section></main>;
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
 </body>
 </html>
-
