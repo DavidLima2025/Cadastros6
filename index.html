@@ -193,7 +193,11 @@
       return null;
     }
     function furtoLatLng(r){
-      const coordManual = parseCoordString(r.COORDENADAS || r.COORDENADA || r.COORD || r.COORDS || '');
+      const coordManual = parseCoordString(
+        r.COORDENADAS || r.COORDENADA || r.COORD || r.COORDS ||
+        r['LAT LNG'] || r['LAT/LNG'] || r['LATITUDE LONGITUDE'] ||
+        r['LATITUDE/LONGITUDE'] || r['LAT, LNG'] || r['LAT,LNG'] || ''
+      );
       if(coordManual) return [coordManual.lat, coordManual.lng, true, 'coordenadas'];
       const lat = parseFloat(String(r.LATITUDE||r.LAT||'').replace(',','.'));
       const lng = parseFloat(String(r.LONGITUDE||r.LON||r.LNG||'').replace(',','.'));
@@ -447,6 +451,12 @@
         if(out['COORDENADAS']) out.COORDENADAS=out['COORDENADAS'];
         if(out['COORDENADA']) out.COORDENADAS=out['COORDENADA'];
         if(out['Coordenadas']) out.COORDENADAS=out['Coordenadas'];
+        if(out['LAT LNG']) out.COORDENADAS=out['LAT LNG'];
+        if(out['LAT/LNG']) out.COORDENADAS=out['LAT/LNG'];
+        if(out['LATITUDE LONGITUDE']) out.COORDENADAS=out['LATITUDE LONGITUDE'];
+        if(out['LATITUDE/LONGITUDE']) out.COORDENADAS=out['LATITUDE/LONGITUDE'];
+        if(out['LAT, LNG']) out.COORDENADAS=out['LAT, LNG'];
+        if(out['LAT,LNG']) out.COORDENADAS=out['LAT,LNG'];
         return out;
       }).filter(r=>String(r.REDS||'').trim());
       const porReds = new Map();
@@ -530,7 +540,7 @@
           try{
             const rowsFromSheet = gvizTableToRows(json.table || {});
             const r = substituirBase(rowsFromSheet, 'Google Planilhas');
-            setSheetStatus(`Google Planilhas: ${r.base.length} registros carregados. Duplicidades removidas: ${r.duplicados}.`);
+            setSheetStatus(`Google Planilhas: ${r.base.length} registros carregados sem cache. Duplicidades removidas: ${r.duplicados}.`);
             if(!silent) alert(`Planilha Google carregada com sucesso. Registros: ${r.base.length}. Duplicidades removidas: ${r.duplicados}.`);
           }catch(err){
             console.error(err);
@@ -547,7 +557,8 @@
           setSheetStatus('Falha ao conectar na planilha Google.');
           if(!silent) alert('Não consegui conectar na planilha Google. Confirme se ela está publicada na web como CSV e se a internet está ativa.');
         };
-        script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?gid=${GOOGLE_SHEET_GID}&tqx=out:json;responseHandler:${callbackName}`;
+        const cacheBust = Date.now();
+        script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?gid=${GOOGLE_SHEET_GID}&tqx=out:json;responseHandler:${callbackName}&tq=${encodeURIComponent('select *')}&cacheBust=${cacheBust}`;
         document.body.appendChild(script);
       };
 
