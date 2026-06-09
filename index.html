@@ -182,25 +182,40 @@
       ['RUA SAO PAULO, 957', -19.91935, -43.94360]
     ];
     function normAddr(s){ return norm(String(s||'')).replace(/AVENIDA/g,'AVENIDA').replace(/PRACA/g,'PRACA').replace(/\s+/g,' ').trim(); }
+    function keyClean(k){
+      return String(k||'')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .toUpperCase().replace(/[^A-Z0-9]/g,'');
+    }
+    function fieldAny(r, names){
+      const wanted = names.map(keyClean);
+      for(const k of Object.keys(r||{})){
+        if(wanted.includes(keyClean(k))) return r[k];
+      }
+      return '';
+    }
+    function numCoord(v){
+      if(v === null || v === undefined || v === '') return NaN;
+      return parseFloat(String(v).trim().replace(',', '.'));
+    }
     function parseCoordString(value){
       if(!value) return null;
       const txt = String(value).trim();
-      if(!txt.includes(',')) return null;
-      const parts = txt.split(',').map(v=>parseFloat(String(v).trim().replace(',','.')));
-      if(parts.length !== 2) return null;
-      const [lat,lng] = parts;
+      const nums = txt.match(/-?\d{1,2}(?:[.,]\d+)?/g);
+      if(!nums || nums.length < 2) return null;
+      const lat = numCoord(nums[0]);
+      const lng = numCoord(nums[1]);
       if(Number.isFinite(lat) && Number.isFinite(lng)) return {lat,lng};
       return null;
     }
     function furtoLatLng(r){
-      const coordManual = parseCoordString(
-        r.COORDENADAS || r.COORDENADA || r.COORD || r.COORDS ||
-        r['LAT LNG'] || r['LAT/LNG'] || r['LATITUDE LONGITUDE'] ||
-        r['LATITUDE/LONGITUDE'] || r['LAT, LNG'] || r['LAT,LNG'] || ''
-      );
-      if(coordManual) return [coordManual.lat, coordManual.lng, true, 'coordenadas'];
-      const lat = parseFloat(String(r.LATITUDE||r.LAT||'').replace(',','.'));
-      const lng = parseFloat(String(r.LONGITUDE||r.LON||r.LNG||'').replace(',','.'));
+      const coordManual = parseCoordString(fieldAny(r, [
+        'COORDENADAS','COORDENADA','COORD','COORDS','LAT LNG','LAT/LNG','LATITUDE LONGITUDE',
+        'LATITUDE/LONGITUDE','LAT, LNG','LAT,LNG','LOCAL DO FATO COORDENADAS','COORDENADAS DO FATO'
+      ]));
+      if(coordManual) return [coordManual.lat, coordManual.lng, true, 'planilha'];
+      const lat = numCoord(fieldAny(r, ['LATITUDE','LAT','LAT.','LATITUTE']));
+      const lng = numCoord(fieldAny(r, ['LONGITUDE','LON','LNG','LONG','LONG.']));
       if(Number.isFinite(lat) && Number.isFinite(lng)) return [lat,lng,true,'planilha'];
       const key = String(r.REDS || '').trim();
       const ov = key && (window.COORD_OVERRIDES || {})[key];
@@ -411,7 +426,7 @@
             const fill = hasAudit ? '#ff3b3b' : (hasNao ? '#ff9f1c' : '#45e06f');
             const size = count > 1 ? 22 : 20;
             const label = count > 1 ? (i+1) : '•';
-            const tooltip = `<div style="min-width:260px"><b>Local do fato</b>${count>1?` • registro ${i+1} de ${count} no mesmo ponto`:''}<br><b>${item.REDS}</b><br>${item.ENDERECO_FURTO||'-'}<br>${item.SETOR||'-'} • ${item.TIPO_VEICULO||''}<br>Localizado: ${item.LOCALIZADO||'-'} • Auditoria: ${item.CABE_AUDITORIA||'-'}${editMode?'<br><b>Arraste este pingo para corrigir só este REDS.</b>':''}</div>`;
+            const tooltip = `<div style="min-width:260px"><b>Local do fato</b>${count>1?` • registro ${i+1} de ${count} no mesmo ponto`:''}<br><b>${item.REDS}</b><br>${item.ENDERECO_FURTO||'-'}<br>${item.SETOR||'-'} • ${item.TIPO_VEICULO||''}<br>Localizado: ${item.LOCALIZADO||'-'} • Auditoria: ${item.CABE_AUDITORIA||'-'}<br>Coord.: ${item._src || '-'}${editMode?'<br><b>Arraste este pingo para corrigir só este REDS.</b>':''}</div>`;
             const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${count>1?11:18}px;background:${fill};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
             const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
               .bindTooltip(tooltip, {sticky:true, maxWidth:420})
@@ -460,17 +475,12 @@
         if(out['ENDEREÇO_FURTO']) out.ENDERECO_FURTO=out['ENDEREÇO_FURTO'];
         if(out['DATA/HORA']) out.DATA_HORA=out['DATA/HORA'];
         if(out['DATA HORA']) out.DATA_HORA=out['DATA HORA'];
-        if(out['LATITUDE']) out.LATITUDE=out['LATITUDE'];
-        if(out['LONGITUDE']) out.LONGITUDE=out['LONGITUDE'];
-        if(out['COORDENADAS']) out.COORDENADAS=out['COORDENADAS'];
-        if(out['COORDENADA']) out.COORDENADAS=out['COORDENADA'];
-        if(out['Coordenadas']) out.COORDENADAS=out['Coordenadas'];
-        if(out['LAT LNG']) out.COORDENADAS=out['LAT LNG'];
-        if(out['LAT/LNG']) out.COORDENADAS=out['LAT/LNG'];
-        if(out['LATITUDE LONGITUDE']) out.COORDENADAS=out['LATITUDE LONGITUDE'];
-        if(out['LATITUDE/LONGITUDE']) out.COORDENADAS=out['LATITUDE/LONGITUDE'];
-        if(out['LAT, LNG']) out.COORDENADAS=out['LAT, LNG'];
-        if(out['LAT,LNG']) out.COORDENADAS=out['LAT,LNG'];
+        const coordImp = fieldAny(out, ['COORDENADAS','COORDENADA','COORD','COORDS','LAT LNG','LAT/LNG','LATITUDE LONGITUDE','LATITUDE/LONGITUDE','LAT, LNG','LAT,LNG','LOCAL DO FATO COORDENADAS','COORDENADAS DO FATO']);
+        if(coordImp) out.COORDENADAS = coordImp;
+        const latImp = fieldAny(out, ['LATITUDE','LAT','LAT.','LATITUTE']);
+        const lngImp = fieldAny(out, ['LONGITUDE','LON','LNG','LONG','LONG.']);
+        if(latImp) out.LATITUDE = latImp;
+        if(lngImp) out.LONGITUDE = lngImp;
         return out;
       }).filter(r=>String(r.REDS||'').trim());
       const porReds = new Map();
