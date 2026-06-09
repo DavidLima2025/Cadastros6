@@ -245,7 +245,13 @@
         }
         saveOverrides(next); setGeoMsg(`Geocodificação finalizada: ${ok} localizados, ${fail} sem retorno.`); setGeoBusy(false);
       };
-      useEffect(()=>{ if(!ref.current || mapRef.current) return; mapRef.current = L.map(ref.current, { zoomControl: true, attributionControl:false }).setView([-19.9184, -43.9405], 15); L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapRef.current); },[]);
+      useEffect(()=>{ 
+        if(!ref.current || mapRef.current) return; 
+        mapRef.current = L.map(ref.current, { zoomControl: true, attributionControl:false }).setView([-19.9184, -43.9405], 15); 
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapRef.current); 
+        // Evita mapa travado/cortado ao recarregar a página com o layout ainda montando.
+        [80,250,700].forEach(t=>setTimeout(()=>{ try{ mapRef.current && mapRef.current.invalidateSize(true); }catch(e){} }, t));
+      },[]);
       useEffect(()=>{
         document.body.classList.toggle('map-lock', !!full);
         return () => { document.body.classList.remove('map-lock'); };
@@ -341,7 +347,15 @@
           });
         });
         layerRef.current = group.addTo(mapRef.current);
-        try { mapRef.current.fitBounds(polygons.getBounds(), {padding:[20,20]}); } catch(e) {}
+        // Centraliza somente na primeira montagem. Antes, a cada atualização/filtro o mapa era
+        // forçado a voltar para o enquadramento inicial, dando sensação de travamento.
+        try { 
+          if(!mapRef.current._didInitialFit){
+            mapRef.current.fitBounds(polygons.getBounds(), {padding:[20,20]});
+            mapRef.current._didInitialFit = true;
+          }
+          setTimeout(()=>mapRef.current && mapRef.current.invalidateSize(true), 80);
+        } catch(e) {}
       },[rows, selected, bySector, editMode, coordOverrides, showHeat, showPins, showAud, showNao, showRec]);
       useEffect(()=>{
         if(!full || !fullMapRef.current) return;
@@ -565,7 +579,9 @@
       // Ao abrir ou apertar F5, tenta atualizar automaticamente pelo Google Planilhas.
       // Se a internet falhar, mantém a última base salva no navegador.
       useEffect(()=>{
-        carregarGoogleSheet(true);
+        // Dá tempo para o mapa montar antes de buscar a planilha; isso evita engasgo no F5.
+        const t = setTimeout(()=>carregarGoogleSheet(true), 900);
+        return ()=>clearTimeout(t);
       }, []);
 
       const handleCsv=(e)=>{
