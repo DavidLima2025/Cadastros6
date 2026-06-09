@@ -68,6 +68,33 @@
     }
 
     function norm(v) { return String(v ?? '').trim().toUpperCase(); }
+    function diaSemanaNorm(v) {
+      let s = norm(v).normalize('NFD').replace(/[̀-ͯ]/g,'');
+      s = s.replace(/[^A-Z]/g,'');
+      const mapa = {
+        'SEG':'SEG','SEGUNDA':'SEG','SEGUNDAFEIRA':'SEG',
+        'TER':'TER','TERCA':'TER','TERCAFEIRA':'TER',
+        'QUA':'QUA','QUARTA':'QUA','QUARTAFEIRA':'QUA',
+        'QUI':'QUI','QUINTA':'QUI','QUINTAFEIRA':'QUI',
+        'SEX':'SEX','SEXTA':'SEX','SEXTAFEIRA':'SEX',
+        'SAB':'SÁB','SABADO':'SÁB',
+        'DOM':'DOM','DOMINGO':'DOM'
+      };
+      return mapa[s] || '';
+    }
+    function diaSemanaPelaData(r) {
+      const bruto = String(r.DATA || r.DATA_HORA || r['DATA/HORA'] || r['DATA HORA'] || '').trim();
+      let m = bruto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      let y, mo, d;
+      if(m){ y=+m[1]; mo=+m[2]; d=+m[3]; }
+      else {
+        m = bruto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if(m){ d=+m[1]; mo=+m[2]; y=+m[3]; }
+      }
+      if(!y || !mo || !d) return '';
+      const idx = new Date(y, mo-1, d).getDay();
+      return ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'][idx] || '';
+    }
     function isSim(v) { return norm(v).startsWith('SIM'); }
     function moneyless(n) { return Number(n||0).toLocaleString('pt-BR'); }
     function pct(a,b) { return b ? ((a/b)*100).toLocaleString('pt-BR', {maximumFractionDigits:1})+'%' : '0%'; }
@@ -349,7 +376,7 @@
             const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${isClustered?11:18}px;background:${fill};opacity:${opacity};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
             const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
               .bindTooltip(tooltip, {sticky:true, maxWidth:420})
-              .on('click',(e)=>{ L.DomEvent.stopPropagation(e); });
+              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
             if(editMode){
               marker.on('dragend', (ev)=>{
                 const pos = ev.target.getLatLng();
@@ -430,7 +457,7 @@
             const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${count>1?11:18}px;background:${fill};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
             const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
               .bindTooltip(tooltip, {sticky:true, maxWidth:420})
-              .on('click',(e)=>{ L.DomEvent.stopPropagation(e); });
+              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
             if(editMode){
               marker.on('dragend', (ev)=>{
                 const pos = ev.target.getLatLng();
@@ -475,6 +502,8 @@
         if(out['ENDEREÇO_FURTO']) out.ENDERECO_FURTO=out['ENDEREÇO_FURTO'];
         if(out['DATA/HORA']) out.DATA_HORA=out['DATA/HORA'];
         if(out['DATA HORA']) out.DATA_HORA=out['DATA HORA'];
+        const diaImp = fieldAny(out, ['DIA_SEMANA','DIA SEMANA','DIA DA SEMANA','DIA-SEMANA','DIA','SEMANA']);
+        out.DIA_SEMANA = diaSemanaNorm(diaImp || out.DIA_SEMANA) || diaSemanaPelaData(out);
         const coordImp = fieldAny(out, ['COORDENADAS','COORDENADA','COORD','COORDS','LAT LNG','LAT/LNG','LATITUDE LONGITUDE','LATITUDE/LONGITUDE','LAT, LNG','LAT,LNG','LOCAL DO FATO COORDENADAS','COORDENADAS DO FATO']);
         if(coordImp) out.COORDENADAS = coordImp;
         const latImp = fieldAny(out, ['LATITUDE','LAT','LAT.','LATITUTE']);
@@ -516,7 +545,10 @@
       const rows = useFiltered(data, filters); const m = metrics(rows); const bySector=metricsBySector(rows);
       const furtoSetor = bySector.map(s=>({name:s.setor,value:s.total})).sort((a,b)=>b.value-a.value);
       const audSetor = bySector.map(s=>({name:s.setor,value:s.aud})).sort((a,b)=>b.value-a.value);
-      const dias = DIA_ORDER.map(d=>({name:d,value:rows.filter(r=>r.DIA_SEMANA===d).length}));
+      const dias = DIA_ORDER.map(d=>({
+        name:d,
+        value:rows.filter(r=>(diaSemanaNorm(r.DIA_SEMANA) || diaSemanaPelaData(r)) === d).length
+      }));
       const substituirBase = (rawRows, origem='CSV')=>{
         const {base, duplicados, lidos} = normalizeImportedRows(rawRows);
         setData(base);
