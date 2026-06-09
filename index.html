@@ -349,7 +349,7 @@
             const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${isClustered?11:18}px;background:${fill};opacity:${opacity};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
             const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
               .bindTooltip(tooltip, {sticky:true, maxWidth:420})
-              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
+              .on('click',(e)=>{ L.DomEvent.stopPropagation(e); });
             if(editMode){
               marker.on('dragend', (ev)=>{
                 const pos = ev.target.getLatLng();
@@ -430,7 +430,7 @@
             const html = `<div class="heat-bubble" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${count>1?11:18}px;background:${fill};${editMode?'cursor:move;box-shadow:0 0 0 3px #fff,0 0 24px '+fill:''}">${label}</div>`;
             const marker = L.marker([mlat, mlng], {draggable: editMode, icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]})})
               .bindTooltip(tooltip, {sticky:true, maxWidth:420})
-              .on('click',()=>{ if(item.SETOR) setSelected(item.SETOR); });
+              .on('click',(e)=>{ L.DomEvent.stopPropagation(e); });
             if(editMode){
               marker.on('dragend', (ev)=>{
                 const pos = ev.target.getLatLng();
